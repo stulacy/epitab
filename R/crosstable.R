@@ -65,30 +65,29 @@ convert_list_to_matrix <- function(x) {
 
     # Setup empty matrix to hold the table
     ncols <- 3 + num_cross_levels + nfuncs
-    nrows <- 4 + sum(sapply(cat_vars, function(var) length(cont[[var]]$counts) + 1))
+    nrows <- 3 + sum(sapply(cat_vars, function(var) length(cont[[var]]$counts) + 1))
     tab <- matrix("", nrow=nrows, ncol=ncols)
 
-    # Add first row and line
+    # Add first row
     tab[1, 3] <- 'All'
     tab[1, 4] <- cross
     for (i in 1:nfuncs) {
         tab[1, 3 + num_cross_levels + i] <- funcs[i]
     }
-    tab[2, ] <- "-"
 
     # First content row is the cross reference variable levels
     for (i in 1:num_cross_levels) {
-        tab[3, 3+i] <- cross_level_labels[i]
+        tab[2, 3+i] <- cross_level_labels[i]
     }
 
     # Followed by the overall counts
-    tab[4, 2] <- "Total"
-    tab[4, 3] <- sum(x$overall_counts)
+    tab[3, 2] <- "Total"
+    tab[3, 3] <- sum(x$overall_counts)
     for (i in 1:num_cross_levels) {
-        tab[4, 3+i] <- paste0(x$overall_counts[i], " (", round(x$overall_proportion[i], 2), ")")
+        tab[3, 3+i] <- paste0(x$overall_counts[i], " (", round(x$overall_proportion[i], 2), ")")
     }
 
-    curr_row_num <- 5
+    curr_row_num <- 4
 
     # Then add the content split by variable
     for (cat_num in seq_along(cat_vars)) {
