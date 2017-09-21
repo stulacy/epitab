@@ -1,4 +1,14 @@
-print.crosstab <- function(x, ...) {
+#' Prints the contingency table as an ASCII table
+#'
+#' @param x An object of class \code{contintab} return by
+#'   \code{contingency_table}.
+#' @param ... Options passed to \code{print}.
+#'
+#' @return None. Prints a table to standard output.
+#'
+#' @method print contintab
+#' @export
+print.contintab <- function(x, ...) {
     cont <- x$content
     cont_padded <- cont
 
