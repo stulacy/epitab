@@ -17,10 +17,27 @@
 #'   \code{cat_vars} and \code{outcome}.
 #' @param functions An optional list of functions that apply a model to the
 #'   data, providing a value for each level of the factors specified in
-#'   \code{cat_vars}.
+#'   \code{cat_vars}. See the vignette for a description of how to specify this.
+#'   One function \code{odds_ratio} comes provided with the package.
 #'
 #' @return An S3 object of class \code{contintab}, that provides the cell contents
 #'   as a matrix of strings.
+#'
+#' @examples
+#'
+#' # This example uses a dummy data set of whether an individual was treated or not
+#' treat_df <- data.frame(age=factor(sample(c("0-20", "21-60", ">61"), 100, replace=TRUE),
+#'                                   levels=c('0-20', '21-60', '>61')),
+#'                        sex=factor(sample(c("M", "F"), 100, replace=TRUE),
+#'                                   levels=c('F', 'M')),
+#'                        treated=factor(sample(c("Yes", "No"), 100, replace=TRUE),
+#'                                       levels=c('Yes', 'No')))
+#'
+#'  tab <- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
+#'                          list('Treated'='treated'),
+#'                          treat_df,
+#'                          list("Odds ratio"=odds_ratio))
+#'  tab
 #'
 #' @export
 contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
@@ -32,18 +49,19 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
         stop("Must specify at least one cross-reference!")
     }
 
-    cross_ref <- outcome[1]
+    outcome_val <- outcome[[1]]
 
     # Calculate cross-reference freq overall
-    overall <- table(data[[cross_ref]])
+    overall <- table(data[[outcome_val]])
     overall_props <- overall / nrow(data)
 
-    content <- setNames(lapply(cat_vars, function(var) {
+
+    content <- lapply(cat_vars, function(var) {
         # Calculate table frequencies overall
         counts <- table(data[[var]])
 
         # Calculate 2x2 table frequencies with proportions
-        cross_counts <- table(data[[var]], data[[cross_ref]])
+        cross_counts <- table(data[[var]], data[[outcome_val]])
         cross_props <- apply(cross_counts, 2, "/", counts)
 
         # Apply function
@@ -53,13 +71,12 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
              cross_counts=cross_counts,
              cross_proportion=cross_props,
              function_vals=func_vals)
-    }), cat_vars)
+    })
 
     raw_obj <- list(content=content,
                     overall_counts=overall,
                     overall_proportion=overall_props,
-                    cat_vars=cat_vars,
-                    outcome=outcome,
+                    outcome_label=names(outcome),
                     funcs=names(functions))
 
     mat <- convert_list_to_matrix(raw_obj)
@@ -67,8 +84,8 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
     obj <- list(content=mat,
                 overall_counts=overall,
                 overall_proportion=overall_props,
-                cat_vars=cat_vars,
-                outcome=outcome,
+                cat_vars=unlist(cat_vars),
+                outcome=outcome_val,
                 noutcomes=length(outcome),
                 funcs=names(functions)
                 )
@@ -76,11 +93,21 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
     obj
 }
 
+
+#' Converts a table with summary values saved as a list to a matrix.
+#'
+#' @keywords internal
+#'
+#' @param list Input list
+#'
+#' @return A string matrix containing the content of each cell
+#'
+#' Internal helper function
+#'
 convert_list_to_matrix <- function(x) {
     spaces <- function(n) paste(rep(" ", n), collapse='')
     cont <- x$content
     cat_vars <- names(cont)
-    cross <- x$outcome
     funcs <- x$funcs
     nfuncs <- length(funcs)
     num_cross_levels <- length(x$overall_counts)
@@ -93,7 +120,7 @@ convert_list_to_matrix <- function(x) {
 
     # Add first row
     tab[1, 3] <- 'All'
-    tab[1, 4] <- cross
+    tab[1, 4] <- x$outcome_label
     for (i in 1:nfuncs) {
         tab[1, 3 + num_cross_levels + i] <- funcs[i]
     }
