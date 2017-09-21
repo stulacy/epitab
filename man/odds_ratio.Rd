@@ -2,9 +2,9 @@
 % Please edit documentation in R/functions.R
 \name{odds_ratio}
 \alias{odds_ratio}
-\title{Calculates the odds ratios for a specific covariate.}
+\title{Builds a function used to calculate odds ratios.}
 \usage{
-odds_ratio(var, data)
+odds_ratio(outcome)
 }
 \arguments{
 \item{var}{The dependent variable}
@@ -15,8 +15,8 @@ odds_ratio(var, data)
 A vector of strings with the hazard ratios.
 }
 \description{
-Builds a logistic regression on the outcome variable of
-interest with a single covariate and returns a list of the
-odds ratios for each level of the factor.
+Builds a function to calculate logistic regression on the
+outcome variable of interest with a single covariate and
+returns a list of the odds ratios for each level of the factor.
 }
 \keyword{internal}

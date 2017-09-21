@@ -46,10 +46,10 @@ treat_df <- data.frame(age=factor(sample(c("0-20", "21-60", ">61"), 100, replace
                        treated=factor(sample(c("Yes", "No"), 100, replace=TRUE),
                                       levels=c('Yes', 'No')))
 
- tab <- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-                         list('Treated'='treated'),
-                         treat_df,
-                         list("Odds ratio"=odds_ratio))
- tab
+ #tab <- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
+ #                        list('Treated'='treated'),
+ #                        treat_df,
+ #                        list("Odds ratio"="odds_ratio"))
+ #tab
 
 }

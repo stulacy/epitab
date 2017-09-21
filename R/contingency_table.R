@@ -33,11 +33,11 @@
 #'                        treated=factor(sample(c("Yes", "No"), 100, replace=TRUE),
 #'                                       levels=c('Yes', 'No')))
 #'
-#'  tab <- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-#'                          list('Treated'='treated'),
-#'                          treat_df,
-#'                          list("Odds ratio"=odds_ratio))
-#'  tab
+#'  #tab <- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
+#'  #                        list('Treated'='treated'),
+#'  #                        treat_df,
+#'  #                        list("Odds ratio"="odds_ratio"))
+#'  #tab
 #'
 #' @export
 contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
@@ -51,10 +51,29 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
 
     outcome_val <- outcome[[1]]
 
+    full_funcs <- list()
+    for (fn in names(functions)) {
+        f <- functions[[fn]]
+        if (class(f) == "function") {
+            # Check has 2 arguments
+            full_funcs[[fn]] <- f
+        } else if (class(f) == "character") {
+            if (!f %in% c('odds_ratio', 'adj_odds_ratio')) {
+                stop("Error: function type '", f, "' unknown. Options are 'odds_ratio' and 'adj_odds_ratio'")
+            }
+
+            # Run closure and generate function
+            if (f == 'odds_ratio') {
+                full_funcs[[fn]] <- odds_ratio(outcome_val)
+            }
+        } else {
+            stop("List entries in argument 'functions' must either be functions or strings.")
+        }
+    }
+
     # Calculate cross-reference freq overall
     overall <- table(data[[outcome_val]])
     overall_props <- overall / nrow(data)
-
 
     content <- lapply(cat_vars, function(var) {
         # Calculate table frequencies overall
@@ -65,7 +84,7 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
         cross_props <- apply(cross_counts, 2, "/", counts)
 
         # Apply function
-        func_vals <- lapply(functions, function(x) x(var, data))
+        func_vals <- lapply(full_funcs, function(x) x(var, data))
 
         list(counts=counts,
              cross_counts=cross_counts,
@@ -77,7 +96,7 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
                     overall_counts=overall,
                     overall_proportion=overall_props,
                     outcome_label=names(outcome),
-                    funcs=names(functions))
+                    funcs=names(full_funcs))
 
     mat <- convert_list_to_matrix(raw_obj)
 
@@ -87,7 +106,7 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
                 cat_vars=unlist(cat_vars),
                 outcome=outcome_val,
                 noutcomes=length(outcome),
-                funcs=names(functions)
+                funcs=names(full_funcs)
                 )
     class(obj) <- c('contintab', class(obj))
     obj
