@@ -1,0 +1,7 @@
+Items to do:
+
+  - print.crosstab function that outputs an ASCII table
+  - Printing to excel function (text only)
+  - Printing to rtf (with table structure)
+  - Printing to HTML (with table structure)
+  - Printing to latex (with table structure)
