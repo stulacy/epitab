@@ -1,4 +1,4 @@
-print.crosstab <- function(x, ...) {
+print.contintab <- function(x, ...) {
     cont <- x$content
     cont_padded <- cont
 
