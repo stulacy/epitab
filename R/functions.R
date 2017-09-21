@@ -14,5 +14,5 @@ odds_ratio <- function(var, data) {
 
     # Reorder coefs back into original levels
     coef_labels <- paste0(var, orig_levels)
-    coefs[coef_labels]
+    round(coefs[coef_labels], 2)
 }
