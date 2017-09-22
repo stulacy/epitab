@@ -142,7 +142,7 @@ convert_list_to_matrix <- function(x) {
     cont <- x$content
     cat_vars <- names(cont)
     funcs <- x$funcs
-    nfuncs <- length(funcs)
+    nfuncs <- if (is.null(funcs)) 0 else length(funcs)
     num_cross_levels <- length(x$overall_counts)
     cross_level_labels <- colnames(x$content[[1]]$cross_counts)
 
@@ -155,8 +155,11 @@ convert_list_to_matrix <- function(x) {
     header <- character(ncols)
     header[3] <- 'All'
     header[4] <- x$outcome_label
-    for (i in 1:nfuncs) {
-        header[3 + num_cross_levels + i] <- funcs[i]
+
+    if (nfuncs > 0) {
+        for (i in 1:nfuncs) {
+            header[3 + num_cross_levels + i] <- funcs[i]
+        }
     }
 
     colnames(tab) <- header
