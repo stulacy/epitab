@@ -1,7 +1,7 @@
 Package: epitab
 Type: Package
 Title: Provides contingency tables for Epidemiology
-Version: 0.1.0
+Version: 0.2.0
 Author: Stuart Lacy
 Maintainer: Stuart Lacy <stuart.lacy@york.ac.uk>
 Description: Builds contingency tables that cross-tabulate multiple 
