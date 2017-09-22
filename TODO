@@ -1,11 +1,10 @@
 Items to do:
 
-  - Reparameterise functions, have them as either strings or functions. If supply "odds_ratio"
-    then the main function will run a closure on the outcome variable to generate the
-    function parameterised as just (var, data) as required
+  - Add CIs to model estimates
+  - Allow specification of precision
+  - Refactor functions as currently has code duplication
   - Allow a second cross-reference variable
   - Add summary statistics, such as chisq
   - Printing to excel function (text only)
   - Printing to rtf (with table structure)
-  - Printing to HTML (with table structure)
   - Printing to latex (with table structure)
