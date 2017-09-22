@@ -11,14 +11,19 @@
 #'
 #' @return A vector of strings with the hazard ratios.
 #'
-odds_ratio <- function(outcome) {
+odds_ratio <- function(outcome, covars=NULL) {
+
     function(var, data) {
+        # Used when only covariates are the
+        if (is.null(covars)) {
+            covars <- var
+        }
         # Set baseline as largest group
         orig_levels <- levels(data[[var]])
         max_group <- levels(data[[var]])[which.max(table(data[[var]]))]
         data[[var]] <- stats::relevel(data[[var]], ref=max_group)
 
-        form <- stats::as.formula(paste(outcome, "~", var))
+        form <- stats::as.formula(paste(outcome, "~", covars))
         mod <- stats::glm(form, data, family=stats::binomial())
 
         # Extract the required coefficients, in glm they are output as

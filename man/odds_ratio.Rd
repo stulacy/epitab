@@ -4,7 +4,7 @@
 \alias{odds_ratio}
 \title{Builds a function used to calculate odds ratios.}
 \usage{
-odds_ratio(outcome)
+odds_ratio(outcome, covars = NULL)
 }
 \arguments{
 \item{var}{The dependent variable}

@@ -65,6 +65,8 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
             # Run closure and generate function
             if (f == 'odds_ratio') {
                 full_funcs[[fn]] <- odds_ratio(outcome_val)
+            } else if (f == "adj_odds_ratio") {
+                full_funcs[[fn]] <- odds_ratio(outcome_val, ".")
             }
         } else {
             stop("List entries in argument 'functions' must either be functions or strings.")
