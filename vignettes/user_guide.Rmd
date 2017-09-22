@@ -1,0 +1,157 @@
+---
+title: "User Guide"
+author: "Stuart Lacy"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette provides examples for building contingency tables using `epitab`.
+
+## Simple cross-tabulation
+
+The first example is building contingency tables. The data set is a dummy one with standard demographic factors and the outcome of interested is whether the patient was treated or not.
+
+```{r}
+treat <- data.frame(age=factor(sample(c("0-20", "21-60", ">61"), 100, replace=T), levels=c('0-20', '21-60', '>61')),
+                    sex=factor(sample(c("M", "F"), 100, replace=T), levels=c('F', 'M')),
+                    treated=factor(sample(c("Yes", "No"), 100, replace=T), levels=c('Yes', 'No')))
+```
+
+Note that age has been discretised into factors, as is required for this package to work.
+
+```{r}
+head(treat)
+```
+
+The primary functionality provided by the package is similar to `stat.table` from `Epi`, but can handle multiple independent variables, for example below shows how age and sex vary with the treatment type. The formatting is slightly different to `stat.table` as well, with the counts and proportions displayed in the same cell, as is commonly used in publication ready tables. The independent variables are passed in named lists, with the name providing the label to use for the table and the value as the column name. The same formatting is used for the outcome variable. There is no limit to the number of independent variables allowed.
+
+```{r}
+contingency_table(list("Age at diagnosis"="age",
+                       "Sex"="sex"),
+                  list("Treated"='treated'),
+                  treat)
+```
+
+## Adding model outputs
+
+Tables used in publications commonly add additional information relating the independent variables with the outcome, often resulting from fitted coefficients from regression models. `epitab` allows for the specification of models that produce a coefficient for each level of a factor. For example, we may be interested to see how the treatment varies by age in a more involved manner than simply listing the proportions. An appropriate course of action would be to fit a univariate logistic regression with `treated` as the response and look at the odds ratios of each factor level. 
+
+The `functions` argument to `contingency_table` allows for the specification of this behaviour. It accepts a named list of strings, where the strings correspond to already implemented models, provided with the package. As with the independent variables, the list entry name is used as the column header. The example below shows how to specify that the odds ratios should be calculated in addition to the cross-tabulated frequencies.
+
+
+```{r}
+contingency_table(list("Age at diagnosis"="age",
+                       "Sex"="sex"),
+                  list("Treated"='treated'),
+                  treat, 
+                  functions=list("Odds ratio"="odds_ratio"))
+```
+
+Another useful model is to adjust for the other covariates when building the model. This is provided with the `adj_odds_ratio` option.
+
+**NB: Note that the default output of these tables is designed to be viewed from a standard R console, which is wide enough to fit the entire table. For displaying contingency tables in formats where the width is limited, such as this html page or on a PDF document, it is recommended to use one of the approaches suggested below in *Publication ready tables*.**
+
+```{r}
+contingency_table(list("Age at diagnosis"="age",
+                       "Sex"="sex"),
+                  list("Treated"='treated'),
+                  treat, 
+                  functions=list("Adjusted odds ratio"="adj_odds_ratio"))
+```
+
+Any number of regression models can be fitted, the table below displays both the univariate odds ratios and those resulting from a model that controls for the other variables. Note that since this dummy data set has been randomly generated with every variable independent of each other, there is minimal difference between these models.
+
+```{r}
+contingency_table(list("Age at diagnosis"="age",
+                       "Sex"="sex"),
+                  list("Treated"='treated'),
+                  treat, 
+                  functions=list("Odds ratio"="odds_ratio",
+                                 "Adjusted odds ratio"="adj_odds_ratio"))
+```
+
+## Survival models
+
+Another use case in epidemiology is where survival is the outcome of interest. For this example we'll use the `prevsim` data set from the `rprev` package that has been designed to simulate a real world cancer registry.
+
+```{r}
+library(rprev)
+data(prevsim)
+head(prevsim)
+```
+
+The main functionality of `contingency_table` is to cross-tabulate independent variables with an outcome, so a suitable categorical outcome variable will need to be designed. For this example, five year survival will be used. Also, age is continuous in the original data set so it will be discretised into intervals.
+
+```{r}
+prevsim$fiveyrsurv <- as.factor(as.numeric(prevsim$time > 365.25*5))
+prevsim$agegrp <- cut(prevsim$age, breaks=c(0, 60, 80, 150), labels=c('0-60', '60-80', '>80'))
+head(prevsim)
+```
+
+Along with `odds_ratio` and `adj_odds_ratio`, default regression models for survival outcomes are provided with the package, in the form of a Cox Proportional Hazards model that outputs hazard ratios. However, while the outcome in the previous Logistic Regression used to estimate the odds ratio was the same outcome `treated` as used in the cross-tabulation, for survival modelling the outcome combines both event time and a censoring indicator. To specify the outcome then, the familiar `Surv(time, status)` object is used from the `survival` package. This needs to be provided as a string (although future versions will remove this requirement) to the `cox_outcome` argument as shown below.
+
+There are both hazard ratios resulting from univariate models, in addition to models that adjust for the other independent variables and these are specified by the strings `hazard_ratio` and `adj_hazard_ratio` respectively.
+
+```{r}
+contingency_table(list("Age at Diagnosis (years)"="agegrp",
+                        "Sex"="sex"),
+                  list("Five year survival"="fiveyrsurv"),
+                  prev_df,
+                  list("Hazard ratio"="hazard_ratio",
+                       "Adjusted hazard ratio"="adj_hazard_ratio"),
+                   cox_outcome = "Surv(time, status)"
+                   )
+```
+
+## Publication ready tables
+
+As stated above, the default `print` method of these contingency tables is designed for a standard wide R console where the entire table fits into view. All of the above tables have no problem correctly displaying when run in a R console, as is the case for the vast majority of day-to-day data analysis. For situations where a more polished table is required there are options available.
+
+### `kable`
+
+As the output of `contingency_table` is also a matrix it can be used with the fantastic `knitr::kable` function for a cleaner appearance. 
+
+**NB: The default value for `option` in `kable` is *pandoc* which doesn't work well with these contingency tables so specify either *html* or *markdown* instead.**
+
+```{r}
+knitr::kable(contingency_table(list("Age at diagnosis"="age",
+                       "Sex"="sex"),
+                  list("Treated"='treated'),
+                  treat, 
+                  functions=list("Odds ratio"="odds_ratio",
+                                 "Adjusted odds ratio"="adj_odds_ratio")),
+             "html"
+)
+```
+
+```{r}
+knitr::kable(contingency_table(list("Age at diagnosis"="age",
+                       "Sex"="sex"),
+                  list("Treated"='treated'),
+                  treat, 
+                  functions=list("Odds ratio"="odds_ratio",
+                                 "Adjusted odds ratio"="adj_odds_ratio")),
+             "markdown"
+)
+```
+
+### PDF
+
+For outputting to PDF documents, try using `xtable` although this has not been tested.
+
+### Exporting to Word
+
+The ability to save the table to an Excel spreadsheet will be added in a future release. This will facilitate simple importing of tables into Word documents.
+
+## Adding custom models
+
+For the advanced user, any regression model can be provided to the `functions` argument, and not just the specified options (`odds_ratio`, `adj_odds_ratio`, `hazard_ratio`, `adj_hazard_ratio`). These must be specified as functions with two parameters: 
+
+  - `cat_var`: The independent variable of interest, expressed as a string
+  - `data`: The data frame
+
+The function must return a character vector (or at least something that can be coerced to character) with the length of the number of levels of `cat_var`.
