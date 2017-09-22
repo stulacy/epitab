@@ -1,5 +1,7 @@
 Items to do:
 
+  - Add CIs to model estimates
+  - Allow specification of precision
   - Refactor functions as currently has code duplication
   - Allow a second cross-reference variable
   - Add summary statistics, such as chisq

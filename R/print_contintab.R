@@ -9,7 +9,9 @@
 #' @method print contintab
 #' @export
 print.contintab <- function(x, ...) {
-    cont <- x$content
+    # Will add column headers to the main matrix now as makes it easier rather than
+    # having to make exceptions for headers everywhere
+    cont <- rbind(colnames(x), x)
     cont_padded <- cont
 
     # Pad columns
