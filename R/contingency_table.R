@@ -19,6 +19,8 @@
 #'   data, providing a value for each level of the factors specified in
 #'   \code{cat_vars}. See the vignette for a description of how to specify this.
 #'   One function \code{odds_ratio} comes provided with the package.
+#' @param cox_outcome A survival object representing the survival outcome of the
+#'   Cox model.
 #'
 #' @return An S3 object of class \code{contintab}, that provides the cell contents
 #'   as a matrix of strings.
@@ -40,7 +42,7 @@
 #'  #tab
 #'
 #' @export
-contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
+contingency_table <- function(cat_vars, outcome, data, functions=NULL, cox_outcome=NULL) {
     if (length(outcome) == 2) {
         stop("Having 2 cross refs isn't currently supported.")
     } else if (length(outcome) > 2) {
@@ -49,7 +51,15 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
         stop("Must specify at least one cross-reference!")
     }
 
+    func_options <- c('odds_ratio', 'adj_odds_ratio', 'hazard_ratio', 'adj_hazard_ratio')
+
     outcome_val <- outcome[[1]]
+
+    for (cat in cat_vars) {
+        if (!is.factor(data[[cat]]) & typeof(data[[cat]]) != 'character') {
+            stop("Error: ", cat, " variable isn't a factor or character. Please reencode it as such.")
+        }
+    }
 
     full_funcs <- list()
     for (fn in names(functions)) {
@@ -58,15 +68,26 @@ contingency_table <- function(cat_vars, outcome, data, functions=NULL) {
             # Check has 2 arguments
             full_funcs[[fn]] <- f
         } else if (class(f) == "character") {
-            if (!f %in% c('odds_ratio', 'adj_odds_ratio')) {
-                stop("Error: function type '", f, "' unknown. Options are 'odds_ratio' and 'adj_odds_ratio'")
+            if (!f %in% func_options) {
+                stop("Error: function type '", f, "' unknown. Options are ", paste(func_options, collapse=', '))
             }
 
             # Run closure and generate function
             if (f == 'odds_ratio') {
-                full_funcs[[fn]] <- odds_ratio(outcome_val)
+                full_funcs[[fn]] <- build_or(outcome_val)
             } else if (f == "adj_odds_ratio") {
-                full_funcs[[fn]] <- odds_ratio(outcome_val, ".")
+                full_funcs[[fn]] <- build_or(outcome_val, unlist(cat_vars))
+            } else if (grepl('hazard', f)) {
+                if (is.null(cox_outcome)) {
+                    stop("Error: Please provide a survival object in 'cox_outcome' when trying to display hazard ratios.")
+                }
+
+                if (f == 'hazard_ratio') {
+                    full_funcs[[fn]] <- build_cox(cox_outcome)
+
+                } else if (f == "adj_hazard_ratio") {
+                    full_funcs[[fn]] <- build_cox(cox_outcome, unlist(cat_vars))
+                }
             }
         } else {
             stop("List entries in argument 'functions' must either be functions or strings.")
