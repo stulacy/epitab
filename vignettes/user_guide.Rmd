@@ -32,8 +32,8 @@ The primary functionality provided by the package is similar to `stat.table` fro
 ```{r}
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
-                  list("Treated"='treated'),
-                  treat)
+                  data=treat,
+                  outcome=list("Treated"='treated'))
 ```
 
 ## Adding model outputs
@@ -46,9 +46,9 @@ The `functions` argument to `contingency_table` allows for the specification of 
 ```{r}
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
-                  list("Treated"='treated'),
-                  treat, 
-                  functions=list("Odds ratio"="odds_ratio"))
+                  data=treat, 
+                  outcome=list("Treated"='treated'),
+                  models=list("Odds ratio"="odds_ratio"))
 ```
 
 Another useful model is to adjust for the other covariates when building the model. This is provided with the `adj_odds_ratio` option.
@@ -58,9 +58,9 @@ Another useful model is to adjust for the other covariates when building the mod
 ```{r}
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
-                  list("Treated"='treated'),
-                  treat, 
-                  functions=list("Adjusted odds ratio"="adj_odds_ratio"))
+                  data=treat, 
+                  outcome=list("Treated"='treated'),
+                  models=list("Adjusted odds ratio"="adj_odds_ratio"))
 ```
 
 Any number of regression models can be fitted, the table below displays both the univariate odds ratios and those resulting from a model that controls for the other variables. Note that since this dummy data set has been randomly generated with every variable independent of each other, there is minimal difference between these models.
@@ -68,9 +68,9 @@ Any number of regression models can be fitted, the table below displays both the
 ```{r}
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
-                  list("Treated"='treated'),
-                  treat, 
-                  functions=list("Odds ratio"="odds_ratio",
+                  data=treat, 
+                  outcome=list("Treated"='treated'),
+                  models=list("Odds ratio"="odds_ratio",
                                  "Adjusted odds ratio"="adj_odds_ratio"))
 ```
 
@@ -99,12 +99,12 @@ There are both hazard ratios resulting from univariate models, in addition to mo
 ```{r}
 contingency_table(list("Age at Diagnosis (years)"="agegrp",
                         "Sex"="sex"),
-                  list("Five year survival"="fiveyrsurv"),
-                  prev_df,
-                  list("Hazard ratio"="hazard_ratio",
-                       "Adjusted hazard ratio"="adj_hazard_ratio"),
-                   cox_outcome = "Surv(time, status)"
-                   )
+                  data=prevsim,
+                  outcome=list("Five year survival"="fiveyrsurv"),
+                  models=list("Hazard ratio"="hazard_ratio",
+                              "Adjusted hazard ratio"="adj_hazard_ratio"),
+                  cox_outcome = "Surv(time, status)"
+                  )
 ```
 
 ## Publication ready tables
@@ -120,9 +120,9 @@ As the output of `contingency_table` is also a matrix it can be used with the fa
 ```{r}
 knitr::kable(contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
-                  list("Treated"='treated'),
-                  treat, 
-                  functions=list("Odds ratio"="odds_ratio",
+                  data=treat, 
+                  outcome=list("Treated"='treated'),
+                  models=list("Odds ratio"="odds_ratio",
                                  "Adjusted odds ratio"="adj_odds_ratio")),
              "html"
 )
@@ -131,9 +131,9 @@ knitr::kable(contingency_table(list("Age at diagnosis"="age",
 ```{r}
 knitr::kable(contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
-                  list("Treated"='treated'),
-                  treat, 
-                  functions=list("Odds ratio"="odds_ratio",
+                  data=treat, 
+                  outcome=list("Treated"='treated'),
+                  models=list("Odds ratio"="odds_ratio",
                                  "Adjusted odds ratio"="adj_odds_ratio")),
              "markdown"
 )

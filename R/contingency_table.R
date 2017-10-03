@@ -56,11 +56,15 @@
 #'
 #' @export
 contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_outcome=NULL,
-                              frequency=TRUE) {
+                              frequency=TRUE, custom_functions=NULL) {
     if (length(outcome) == 2) {
         stop("Having 2 cross refs isn't currently supported.")
     } else if (length(outcome) > 2) {
         stop("Having more than 2 cross refs isn't possible.")
+    }
+
+    if (!is.null(custom_functions)) {
+        stop("Error: currently do not have custom functions functionality supported.")
     }
 
     func_options <- c('odds_ratio', 'adj_odds_ratio', 'hazard_ratio', 'adj_hazard_ratio')
@@ -83,33 +87,35 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
     full_funcs <- list()
     for (fn in names(models)) {
         f <- models[[fn]]
+        if (!f %in% func_options) {
+            stop("Error: function type '", f, "' unknown. Options are ", paste(func_options, collapse=', '))
+        }
+
+        # Run closure and generate function
+        if (f == 'odds_ratio') {
+            full_funcs[[fn]] <- build_or(outcome_val)
+        } else if (f == "adj_odds_ratio") {
+            full_funcs[[fn]] <- build_or(outcome_val, unlist(cat_vars))
+        } else if (grepl('hazard', f)) {
+            if (is.null(cox_outcome)) {
+                stop("Error: Please provide a survival object in 'cox_outcome' when trying to display hazard ratios.")
+            }
+
+            if (f == 'hazard_ratio') {
+                full_funcs[[fn]] <- build_cox(cox_outcome)
+
+            } else if (f == "adj_hazard_ratio") {
+                full_funcs[[fn]] <- build_cox(cox_outcome, unlist(cat_vars))
+            }
+        }
+    }
+    for (fn in custom_functions) {
+        f <- custom_functions[[fn]]
         if (class(f) == "function") {
             # Check has 2 arguments
             full_funcs[[fn]] <- f
-        } else if (class(f) == "character") {
-            if (!f %in% func_options) {
-                stop("Error: function type '", f, "' unknown. Options are ", paste(func_options, collapse=', '))
-            }
-
-            # Run closure and generate function
-            if (f == 'odds_ratio') {
-                full_funcs[[fn]] <- build_or(outcome_val)
-            } else if (f == "adj_odds_ratio") {
-                full_funcs[[fn]] <- build_or(outcome_val, unlist(cat_vars))
-            } else if (grepl('hazard', f)) {
-                if (is.null(cox_outcome)) {
-                    stop("Error: Please provide a survival object in 'cox_outcome' when trying to display hazard ratios.")
-                }
-
-                if (f == 'hazard_ratio') {
-                    full_funcs[[fn]] <- build_cox(cox_outcome)
-
-                } else if (f == "adj_hazard_ratio") {
-                    full_funcs[[fn]] <- build_cox(cox_outcome, unlist(cat_vars))
-                }
-            }
         } else {
-            stop("List entries in argument 'models' must either be functions or strings.")
+            stop("Error: custom functions must be of type function")
         }
     }
 

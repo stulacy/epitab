@@ -30,11 +30,35 @@ build_or <- function(outcome, covars=NULL) {
         # Extract the required coefficients, in glm they are output as
         # <varname><level>. Also add a dummy coefficient = 1 for baseline
         coefs <- c(exp(stats::coef(mod)[-1]), 1)
-        names(coefs)[length(coefs)] <- paste0(var, max_group)
+        max_group_label <- paste0(var, max_group)
+        names(coefs)[length(coefs)] <- max_group_label
 
         # Reorder coefs back into original levels
         coef_labels <- paste0(var, orig_levels)
-        round(coefs[coef_labels], 2)
+        modelled_levels <- setdiff(coef_labels, max_group_label)
+        estimates <- coefs[coef_labels]
+
+        # Then round
+        estimates[modelled_levels] <- sapply(estimates[modelled_levels], function(x) sprintf("%0.2f", x))
+
+        # Now get CIs
+        raw_ci <- stats::confint(mod)
+        # Firstly get the (p-1) CIs
+        ci <- raw_ci[modelled_levels, ]
+        # If have a single modelled level then a vector gets returned rather than a matrix
+        if (is.null(dim(ci))) {
+            dim(ci) <- c(1, 2)
+            row.names(ci) <- modelled_levels
+        }
+        ci_str <- apply(ci, 1, function(row) {
+            sprintf("(%.2f - %.2f)", row[1], row[2])
+        })
+        # Add empty val for baseline
+        ci_str <- c(ci_str, "")
+        names(ci_str)[length(ci_str)] <- max_group_label
+
+        # And combine into formatted string
+        paste(estimates, ci_str[coef_labels])
     }
 }
 
@@ -71,10 +95,34 @@ build_cox <- function(outcome, covars=NULL) {
         # Extract the required coefficients, in glm they are output as
         # <varname><level>. Also add a dummy coefficient = 1 for baseline
         coefs <- c(exp(stats::coef(mod)), 1)
-        names(coefs)[length(coefs)] <- paste0(var, max_group)
+        max_group_label <- paste0(var, max_group)
+        names(coefs)[length(coefs)] <- max_group_label
 
         # Reorder coefs back into original levels
         coef_labels <- paste0(var, orig_levels)
-        round(coefs[coef_labels], 2)
+        modelled_levels <- setdiff(coef_labels, max_group_label)
+        estimates <- coefs[coef_labels]
+
+        # Then round
+        estimates[modelled_levels] <- sapply(estimates[modelled_levels], function(x) sprintf("%0.2f", x))
+
+        # Now get CIs
+        raw_ci <- stats::confint(mod)
+        # Firstly get the (p-1) CIs
+        ci <- raw_ci[modelled_levels, ]
+        # If have a single modelled level then a vector gets returned rather than a matrix
+        if (is.null(dim(ci))) {
+            dim(ci) <- c(1, 2)
+            row.names(ci) <- modelled_levels
+        }
+        ci_str <- apply(ci, 1, function(row) {
+            sprintf("(%.2f - %.2f)", row[1], row[2])
+        })
+        # Add empty val for baseline
+        ci_str <- c(ci_str, "")
+        names(ci_str)[length(ci_str)] <- max_group_label
+
+        # And combine into formatted string
+        paste(estimates, ci_str[coef_labels])
     }
 }
