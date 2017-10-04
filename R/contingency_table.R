@@ -47,6 +47,7 @@
 #'                    outcome=list('Treated'='treated'),
 #'                    models=list("Odds ratio"="odds_ratio"))
 #'
+#'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
 #'                    outcome=list('Treated'='treated'),
@@ -122,7 +123,7 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
     # Calculate cross-reference freq overall
     if (!is.null(outcome)) {
         overall <- table(data[[outcome_val]])
-        overall_props <- overall / nrow(data)
+        overall_props <- round((overall / nrow(data)) * 100)
     } else {
         overall <- NULL
         overall_props <- NULL
@@ -135,6 +136,7 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
             # Calculate 2x2 table frequencies with proportions
             cross_counts <- table(data[[var]], data[[outcome_val]])
             cross_props <- apply(cross_counts, 2, "/", counts)
+            cross_props <- round(cross_props * 100)
         } else {
             cross_counts <- NULL
             cross_props <- NULL
@@ -218,8 +220,8 @@ convert_list_to_matrix <- function(x) {
     }
 
     # Followed by the overall counts
-    tab[2, 2] <- "Total"
     if (x$frequency) {
+        tab[2, 2] <- "Total"
         tab[2, 3] <- x$num_obs
         col_num <- 3
     } else {
