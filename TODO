@@ -2,6 +2,8 @@ Items to do:
 
   - Neater way of providing model arguments
   - Add user specified functions (i.e. that I'll need for N year survival)
+  - Check CIs for Cox model
+  - Have variables in stratification variables labels in header
   - Allow specification of precision
   - Refactor models as currently has code duplication
   - Allow a second cross-reference variable

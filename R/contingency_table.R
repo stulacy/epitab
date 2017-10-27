@@ -47,7 +47,6 @@
 #'                    outcome=list('Treated'='treated'),
 #'                    models=list("Odds ratio"="odds_ratio"))
 #'
-#'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
 #'                    outcome=list('Treated'='treated'),
@@ -123,7 +122,7 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
     # Calculate cross-reference freq overall
     if (!is.null(outcome)) {
         overall <- table(data[[outcome_val]])
-        overall_props <- round((overall / nrow(data)) * 100)
+        overall_props <- overall / nrow(data)
     } else {
         overall <- NULL
         overall_props <- NULL
@@ -136,7 +135,6 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
             # Calculate 2x2 table frequencies with proportions
             cross_counts <- table(data[[var]], data[[outcome_val]])
             cross_props <- apply(cross_counts, 2, "/", counts)
-            cross_props <- round(cross_props * 100)
         } else {
             cross_counts <- NULL
             cross_props <- NULL
@@ -189,7 +187,10 @@ convert_list_to_matrix <- function(x) {
 
     # Setup empty matrix to hold the table
     ncols <- 2 + as.numeric(x$frequency) + num_cross_levels + nfuncs
-    nrows <- 2 + sum(sapply(cat_vars, function(var) length(cont[[var]]$levels) + 1))
+    nrows <- sum(sapply(cat_vars, function(var) length(cont[[var]]$levels) + 1))
+    if (x$frequency | num_cross_levels > 0) {
+        nrows <- nrows + 2
+    }
     tab <- matrix("", nrow=nrows, ncol=ncols)
 
     # Add first row
@@ -203,12 +204,12 @@ convert_list_to_matrix <- function(x) {
 
     if (x$has_outcome) {
         header[col_num] <- x$outcome_label
-        col_num <- col_num + 1
+        col_num <- col_num + num_cross_levels
     }
 
     if (nfuncs > 0) {
         for (i in 1:nfuncs) {
-            header[col_num - 2 + num_cross_levels + i] <- funcs[i]
+            header[col_num - 1 + i] <- funcs[i]
         }
     }
 
@@ -216,12 +217,12 @@ convert_list_to_matrix <- function(x) {
 
     # First content row is the outcome variable levels
     for (i in seq_len(num_cross_levels)) {
-        tab[1, 3+i] <- cross_level_labels[i]
+        tab[1, 2 + as.numeric(x$frequency) + i] <- cross_level_labels[i]
     }
 
     # Followed by the overall counts
+    tab[2, 2] <- "Total"
     if (x$frequency) {
-        tab[2, 2] <- "Total"
         tab[2, 3] <- x$num_obs
         col_num <- 3
     } else {
@@ -232,7 +233,12 @@ convert_list_to_matrix <- function(x) {
         tab[2, col_num+i] <- paste0(x$overall_counts[i], " (", round(x$overall_proportion[i], 2), ")")
     }
 
-    curr_row_num <- 3
+    if (x$frequency | num_cross_levels > 0) {
+        starting_row <- 3
+    } else {
+        starting_row <- 1
+    }
+    curr_row_num <- starting_row
 
     # Then add the content split by variable
     for (cat_num in seq_along(cat_vars)) {
