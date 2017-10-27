@@ -42,7 +42,7 @@ build_or <- function(outcome, covars=NULL) {
         estimates[modelled_levels] <- sapply(estimates[modelled_levels], function(x) sprintf("%0.2f", x))
 
         # Now get CIs
-        raw_ci <- exp(stats::confint(mod))
+        raw_ci <- suppressMessages(exp(stats::confint(mod)))
         # Firstly get the (p-1) CIs
         ci <- raw_ci[modelled_levels, ]
         # If have a single modelled level then a vector gets returned rather than a matrix
@@ -107,7 +107,7 @@ build_cox <- function(outcome, covars=NULL) {
         estimates[modelled_levels] <- sapply(estimates[modelled_levels], function(x) sprintf("%0.2f", x))
 
         # Now get CIs
-        raw_ci <- exp(stats::confint(mod))
+        raw_ci <- suppressMessages(exp(stats::confint(mod)))
         # Firstly get the (p-1) CIs
         ci <- raw_ci[modelled_levels, ]
         # If have a single modelled level then a vector gets returned rather than a matrix
