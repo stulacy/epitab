@@ -156,11 +156,13 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
                     funcs=names(full_funcs),
                     frequency=frequency,
                     has_outcome=!is.null(outcome),
-                    num_obs=nrow(data))
+                    num_obs=nrow(data),
+                    num_headers=1 + length(outcome))
 
     mat <- convert_list_to_matrix(raw_obj)
-    class(mat) <- c('contintab', class(mat))
-    mat
+    raw_obj$mat <- mat
+    class(raw_obj) <- c('contintab', class(raw_obj))
+    raw_obj
 }
 
 
@@ -175,7 +177,6 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
 #' Internal helper function
 #'
 convert_list_to_matrix <- function(x) {
-    spaces <- function(n) paste(rep(" ", n), collapse='')
     cont <- x$content
     cat_vars <- names(cont)
     funcs <- x$funcs
@@ -187,58 +188,62 @@ convert_list_to_matrix <- function(x) {
 
     # Setup empty matrix to hold the table
     ncols <- 2 + as.numeric(x$frequency) + num_cross_levels + nfuncs
-    nrows <- sum(sapply(cat_vars, function(var) length(cont[[var]]$levels) + 1))
-    if (x$frequency | num_cross_levels > 0) {
+    nrows <- sum(sapply(cat_vars, function(var) length(cont[[var]]$levels) + 1)) + x$num_headers
+    if (x$frequency | x$has_outcome) {
         nrows <- nrows + 2
     }
+
     tab <- matrix("", nrow=nrows, ncol=ncols)
 
+    # Row to hold model column names and 'All'
+    header_row <- x$num_headers
+
     # Add first row
-    header <- character(ncols)
     if (x$frequency) {
-        header[3] <- 'All'
+        tab[header_row, 3] <- 'All'
         col_num <- 4
     } else {
         col_num <- 3
     }
 
     if (x$has_outcome) {
-        header[col_num] <- x$outcome_label
+        # Outcome labels are always first row
+        tab[1, col_num] <- x$outcome_label
         col_num <- col_num + num_cross_levels
     }
 
     if (nfuncs > 0) {
         for (i in 1:nfuncs) {
-            header[col_num - 1 + i] <- funcs[i]
+            tab[header_row, col_num - 1 + i] <- funcs[i]
         }
     }
 
-    colnames(tab) <- header
-
-    # First content row is the outcome variable levels
-    for (i in seq_len(num_cross_levels)) {
-        tab[1, 2 + as.numeric(x$frequency) + i] <- cross_level_labels[i]
+    # First content row is the outcome variable levels.
+    if (x$has_outcome) {
+        for (i in seq_len(num_cross_levels)) {
+            tab[2, 2 + as.numeric(x$frequency) + i] <- cross_level_labels[i]
+        }
     }
 
-    # Followed by the overall counts
-    tab[2, 2] <- "Total"
-    if (x$frequency) {
-        tab[2, 3] <- x$num_obs
-        col_num <- 3
-    } else {
-        col_num <- 2
-    }
+    curr_row_num <- header_row + 1
 
-    for (i in seq_len(num_cross_levels)) {
-        tab[2, col_num+i] <- paste0(x$overall_counts[i], " (", round(x$overall_proportion[i], 2), ")")
-    }
+    if (x$has_outcome | x$frequency) {
+        curr_row_num <- curr_row_num + 1
+        # First row is overall counts if required
+        tab[curr_row_num, 2] <- "Total"
+        if (x$frequency) {
+            tab[curr_row_num, 3] <- x$num_obs
+            col_num <- 3
+        } else {
+            col_num <- 2
+        }
 
-    if (x$frequency | num_cross_levels > 0) {
-        starting_row <- 3
-    } else {
-        starting_row <- 1
+        for (i in seq_len(num_cross_levels)) {
+            tab[curr_row_num, col_num+i] <- paste0(x$overall_counts[i], " (", round(x$overall_proportion[i], 2), ")")
+        }
+
+        curr_row_num <- curr_row_num + 1
     }
-    curr_row_num <- starting_row
 
     # Then add the content split by variable
     for (cat_num in seq_along(cat_vars)) {

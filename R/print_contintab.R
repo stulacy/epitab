@@ -11,7 +11,7 @@
 print.contintab <- function(x, ...) {
     # Will add column headers to the main matrix now as makes it easier rather than
     # having to make exceptions for headers everywhere
-    cont <- rbind(colnames(x), x)
+    cont <- x$mat
     cont_padded <- cont
 
     # Pad columns
@@ -46,7 +46,7 @@ print.contintab <- function(x, ...) {
 
     # Add header row after first column
     header_row <- paste(rep("-", row_length), collapse='')
-    rows <- c(rows[1], header_row, rows[-1])
+    rows <- c(rows[1:x$num_headers], header_row, rows[-(seq(x$num_headers))])
 
     # Now combine into single value with line breaks and cat it
     full_tab <- paste(rows, collapse='\n')
