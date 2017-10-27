@@ -66,7 +66,7 @@ contingency_table(list("Age at diagnosis"="age",
 Any number of regression models can be fitted, the table below displays both the univariate odds ratios and those resulting from a model that controls for the other variables. Note that since this dummy data set has been randomly generated with every variable independent of each other, there is minimal difference between these models.
 
 ```{r}
-contingency_table(list("Age at diagnosis"="age",
+foo <- contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
                   outcome=list("Treated"='treated'),
@@ -97,12 +97,13 @@ Along with `odds_ratio` and `adj_odds_ratio`, default regression models for surv
 There are both hazard ratios resulting from univariate models, in addition to models that adjust for the other independent variables and these are specified by the strings `hazard_ratio` and `adj_hazard_ratio` respectively.
 
 ```{r}
-contingency_table(list("Age at Diagnosis (years)"="agegrp",
+foo <- contingency_table(list("Age at Diagnosis (years)"="agegrp",
                         "Sex"="sex"),
                   data=prevsim,
+                  frequency = T,
                   outcome=list("Five year survival"="fiveyrsurv"),
-                  models=list("Hazard ratio"="hazard_ratio",
-                              "Adjusted hazard ratio"="adj_hazard_ratio"),
+                  models=list("Hazard ratio"="hazard_ratio"),
+                              #"Adjusted hazard ratio"="adj_hazard_ratio"),
                   cox_outcome = "Surv(time, status)"
                   )
 ```
@@ -111,7 +112,23 @@ contingency_table(list("Age at Diagnosis (years)"="agegrp",
 
 As stated above, the default `print` method of these contingency tables is designed for a standard wide R console where the entire table fits into view. All of the above tables have no problem correctly displaying when run in a R console, as is the case for the vast majority of day-to-day data analysis. For situations where a more polished table is required there are options available.
 
+### `neat_table`
+
+TODO Talk about `neat_table` here
+
+```{r}
+neat_table(contingency_table(list("Age at diagnosis"="age",
+                               "Sex"="sex"),
+                               data=treat, 
+                               outcome=list("Treated"='treated'),
+                               models=list("Odds ratio"="odds_ratio",
+                                           "Adjusted odds ratio"="adj_odds_ratio"))
+)
+```
+
 ### `kable`
+
+TODO Discuss that can use kable on raw matrix for more fine tuned control
 
 As the output of `contingency_table` is also a matrix it can be used with the fantastic `knitr::kable` function for a cleaner appearance. 
 
@@ -119,11 +136,11 @@ As the output of `contingency_table` is also a matrix it can be used with the fa
 
 ```{r}
 knitr::kable(contingency_table(list("Age at diagnosis"="age",
-                       "Sex"="sex"),
-                  data=treat, 
-                  outcome=list("Treated"='treated'),
-                  models=list("Odds ratio"="odds_ratio",
-                                 "Adjusted odds ratio"="adj_odds_ratio")),
+                               "Sex"="sex"),
+                               data=treat, 
+                               outcome=list("Treated"='treated'),
+                               models=list("Odds ratio"="odds_ratio",
+                                           "Adjusted odds ratio"="adj_odds_ratio"))$mat,
              "html"
 )
 ```
@@ -134,7 +151,7 @@ knitr::kable(contingency_table(list("Age at diagnosis"="age",
                   data=treat, 
                   outcome=list("Treated"='treated'),
                   models=list("Odds ratio"="odds_ratio",
-                                 "Adjusted odds ratio"="adj_odds_ratio")),
+                                 "Adjusted odds ratio"="adj_odds_ratio"))$mat,
              "markdown"
 )
 ```
