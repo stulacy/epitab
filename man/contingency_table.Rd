@@ -4,22 +4,26 @@
 \alias{contingency_table}
 \title{Builds a contingency table}
 \usage{
-contingency_table(cat_vars, outcome, data, functions = NULL)
+contingency_table(cat_vars, data, outcome = NULL, models = NULL,
+  cox_outcome = NULL, frequency = TRUE, custom_functions = NULL)
 }
 \arguments{
 \item{cat_vars}{A named list of independent variables, where the names are
 used as the column headers. The variables must be specified by strings.}
 
-\item{outcome}{The outcome variable of interest, provided as a named list.
-Must be a factor. The outcome must be specified as a string.}
-
 \item{data}{The data set that contains the columns specified in
 \code{cat_vars} and \code{outcome}.}
 
-\item{functions}{An optional list of functions that apply a model to the
+\item{outcome}{The outcome variable of interest, provided as a named list.
+Must be a factor. The outcome must be specified as a string.}
+
+\item{models}{An optional list of functions that apply a model to the
 data, providing a value for each level of the factors specified in
 \code{cat_vars}. See the vignette for a description of how to specify this.
 One function \code{odds_ratio} comes provided with the package.}
+
+\item{cox_outcome}{A survival object representing the survival outcome of the
+Cox model.}
 }
 \value{
 An S3 object of class \code{contintab}, that provides the cell contents
@@ -46,10 +50,23 @@ treat_df <- data.frame(age=factor(sample(c("0-20", "21-60", ">61"), 100, replace
                        treated=factor(sample(c("Yes", "No"), 100, replace=TRUE),
                                       levels=c('Yes', 'No')))
 
- #tab <- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
- #                        list('Treated'='treated'),
- #                        treat_df,
- #                        list("Odds ratio"="odds_ratio"))
- #tab
+ contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
+                   data=treat_df)
+
+ contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
+                   treat_df,
+                   outcome=list('Treated'='treated'))
+
+ contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
+                   treat_df,
+                   outcome=list('Treated'='treated'),
+                   models=list("Odds ratio"="odds_ratio"))
+
+ contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
+                   treat_df,
+                   outcome=list('Treated'='treated'),
+                   models=list("Odds ratio"="odds_ratio",
+                               "Adjusted odds ratio"="adj_odds_ratio"))
+
 
 }
