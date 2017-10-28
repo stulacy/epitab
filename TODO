@@ -2,7 +2,6 @@ Items to do:
 
   - Neater way of providing model arguments
   - Add user specified functions (i.e. that I'll need for N year survival)
-  - Add separate function for kable
   - Refactor models as currently has code duplication
   - Allow a second stratification variable
   - Allow specification of precision
