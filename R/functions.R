@@ -8,10 +8,11 @@
 #'   supplied to \code{contingency_table}.
 #' @param adjusted Whether to adjust for the other covariates, specified by
 #'   \code{cat_vars} argument to \code{contingency_table}.
+#' @param relevel_baseline Whether to use the largest level as the baseline.
 #'
 #' @return A function that is used to calculate odds ratios.
 #'
-odds_ratio <- function(outcome=NULL, adjusted=FALSE) {
+odds_ratio <- function(outcome=NULL, adjusted=FALSE, relevel_baseline=TRUE) {
 
     function(var, all_vars, first_strata, data) {
         # Used when no covariates are specified, thereby indicating
@@ -25,10 +26,15 @@ odds_ratio <- function(outcome=NULL, adjusted=FALSE) {
         if (is.null(outcome)) {
             outcome <- first_strata
         }
-        # Set baseline as largest group
+
         orig_levels <- levels(data[[var]])
-        max_group <- levels(data[[var]])[which.max(table(data[[var]]))]
-        data[[var]] <- stats::relevel(data[[var]], ref=max_group)
+        # Set baseline as largest group
+        if (relevel_baseline) {
+            baseline <- levels(data[[var]])[which.max(table(data[[var]]))]
+            data[[var]] <- stats::relevel(data[[var]], ref=baseline)
+        } else {
+            baseline <- levels(data[[var]])[1]
+        }
 
         form <- stats::as.formula(paste(outcome, "~", paste(covars, collapse='+')))
         mod <- stats::glm(form, data, family=stats::binomial())
@@ -36,12 +42,12 @@ odds_ratio <- function(outcome=NULL, adjusted=FALSE) {
         # Extract the required coefficients, in glm they are output as
         # <varname><level>. Also add a dummy coefficient = 1 for baseline
         coefs <- c(exp(stats::coef(mod)[-1]), 1)
-        max_group_label <- paste0(var, max_group)
-        names(coefs)[length(coefs)] <- max_group_label
+        baseline_label <- paste0(var, baseline)
+        names(coefs)[length(coefs)] <- baseline_label
 
         # Reorder coefs back into original levels
         coef_labels <- paste0(var, orig_levels)
-        modelled_levels <- setdiff(coef_labels, max_group_label)
+        modelled_levels <- setdiff(coef_labels, baseline_label)
         estimates <- coefs[coef_labels]
 
         # Then round
@@ -61,7 +67,7 @@ odds_ratio <- function(outcome=NULL, adjusted=FALSE) {
         })
         # Add empty val for baseline
         ci_str <- c(ci_str, "")
-        names(ci_str)[length(ci_str)] <- max_group_label
+        names(ci_str)[length(ci_str)] <- baseline_label
 
         # And combine into formatted string
         paste(estimates, ci_str[coef_labels])
@@ -78,9 +84,10 @@ odds_ratio <- function(outcome=NULL, adjusted=FALSE) {
 #'   as a string.
 #' @param adjusted Whether to adjust for the other covariates, specified by
 #'   \code{cat_vars} argument to \code{contingency_table}.
+#' @param relevel_baseline Whether to use the largest level as the baseline.
 #'
 #' @return A function that is used to calculate hazard ratios.
-hazard_ratio <- function(outcome, adjusted=FALSE) {
+hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE) {
 
     function(var, all_vars, first_strata, data) {
         # Used when no covariates are specified, thereby indicating
@@ -93,8 +100,12 @@ hazard_ratio <- function(outcome, adjusted=FALSE) {
 
         # Set baseline as largest group
         orig_levels <- levels(data[[var]])
-        max_group <- levels(data[[var]])[which.max(table(data[[var]]))]
-        data[[var]] <- stats::relevel(data[[var]], ref=max_group)
+        if (relevel_baseline) {
+            baseline <- levels(data[[var]])[which.max(table(data[[var]]))]
+            data[[var]] <- stats::relevel(data[[var]], ref=baseline)
+        } else {
+            baseline <- levels(data[[var]])[1]
+        }
 
         form <- stats::as.formula(paste(outcome, "~", paste(covars, collapse='+')))
         mod <- survival::coxph(form, data)
@@ -102,12 +113,12 @@ hazard_ratio <- function(outcome, adjusted=FALSE) {
         # Extract the required coefficients, in glm they are output as
         # <varname><level>. Also add a dummy coefficient = 1 for baseline
         coefs <- c(exp(stats::coef(mod)), 1)
-        max_group_label <- paste0(var, max_group)
-        names(coefs)[length(coefs)] <- max_group_label
+        baseline_label <- paste0(var, baseline)
+        names(coefs)[length(coefs)] <- baseline_label
 
         # Reorder coefs back into original levels
         coef_labels <- paste0(var, orig_levels)
-        modelled_levels <- setdiff(coef_labels, max_group_label)
+        modelled_levels <- setdiff(coef_labels, baseline_label)
         estimates <- coefs[coef_labels]
 
         # Then round
@@ -127,7 +138,7 @@ hazard_ratio <- function(outcome, adjusted=FALSE) {
         })
         # Add empty val for baseline
         ci_str <- c(ci_str, "")
-        names(ci_str)[length(ci_str)] <- max_group_label
+        names(ci_str)[length(ci_str)] <- baseline_label
 
         # And combine into formatted string
         paste(estimates, ci_str[coef_labels])

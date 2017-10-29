@@ -4,7 +4,7 @@
 \alias{odds_ratio}
 \title{Builds a function used to calculate odds ratios.}
 \usage{
-odds_ratio(outcome = NULL, adjusted = FALSE)
+odds_ratio(outcome = NULL, adjusted = FALSE, relevel_baseline = TRUE)
 }
 \arguments{
 \item{outcome}{The dependent variable, defaults to the first \code{strata}
@@ -12,6 +12,8 @@ supplied to \code{contingency_table}.}
 
 \item{adjusted}{Whether to adjust for the other covariates, specified by
 \code{cat_vars} argument to \code{contingency_table}.}
+
+\item{relevel_baseline}{Whether to use the largest level as the baseline.}
 }
 \value{
 A function that is used to calculate odds ratios.
