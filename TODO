@@ -1,6 +1,5 @@
 Items to do:
 
-  - Refactor models as currently has code duplication
   - Allow a second stratification variable
   - Allow specification of precision
   - Add summary statistics, such as chisq
