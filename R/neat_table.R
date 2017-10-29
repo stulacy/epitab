@@ -6,7 +6,7 @@
 #'
 #' @importFrom magrittr %>%
 #' @export
-#' TODO Add funtionality for HTML and LaTeX
+#TODO Add funtionality for HTML and LaTeX
 neat_table <- function(table, format="html") {
     mat <- table$mat
     content <- mat[(table$num_headers+1):nrow(mat), ]

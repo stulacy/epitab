@@ -33,7 +33,7 @@ The primary functionality provided by the package is similar to `stat.table` fro
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat,
-                  outcome=list("Treated"='treated'))
+                  strata=list("Treated"='treated'))
 ```
 
 ## Adding model outputs
@@ -47,8 +47,8 @@ The `functions` argument to `contingency_table` allows for the specification of 
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
-                  outcome=list("Treated"='treated'),
-                  models=list("Odds ratio"="odds_ratio"))
+                  strata=list("Treated"='treated'),
+                  models=list("Odds ratio"=odds_ratio()))
 ```
 
 Another useful model is to adjust for the other covariates when building the model. This is provided with the `adj_odds_ratio` option.
@@ -59,19 +59,19 @@ Another useful model is to adjust for the other covariates when building the mod
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
-                  outcome=list("Treated"='treated'),
-                  models=list("Adjusted odds ratio"="adj_odds_ratio"))
+                  strata=list("Treated"='treated'),
+                  models=list("Adjusted odds ratio"=odds_ratio(adjusted = TRUE)))
 ```
 
 Any number of regression models can be fitted, the table below displays both the univariate odds ratios and those resulting from a model that controls for the other variables. Note that since this dummy data set has been randomly generated with every variable independent of each other, there is minimal difference between these models.
 
 ```{r}
-foo <- contingency_table(list("Age at diagnosis"="age",
+contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
-                  outcome=list("Treated"='treated'),
-                  models=list("Odds ratio"="odds_ratio",
-                                 "Adjusted odds ratio"="adj_odds_ratio"))
+                  strata=list("Treated"='treated'),
+                  models=list("Odds ratio"=odds_ratio(),
+                              "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))
 ```
 
 ## Survival models
@@ -97,14 +97,13 @@ Along with `odds_ratio` and `adj_odds_ratio`, default regression models for surv
 There are both hazard ratios resulting from univariate models, in addition to models that adjust for the other independent variables and these are specified by the strings `hazard_ratio` and `adj_hazard_ratio` respectively.
 
 ```{r}
-foo <- contingency_table(list("Age at Diagnosis (years)"="agegrp",
+contingency_table(list("Age at Diagnosis (years)"="agegrp",
                         "Sex"="sex"),
                   data=prevsim,
                   frequency = T,
-                  outcome=list("Five year survival"="fiveyrsurv"),
-                  models=list("Hazard ratio"="hazard_ratio"),
-                              #"Adjusted hazard ratio"="adj_hazard_ratio"),
-                  cox_outcome = "Surv(time, status)"
+                  strata=list("Five year survival"="fiveyrsurv"),
+                  models=list("Hazard ratio"=hazard_ratio("Surv(time, status)"),
+                              "Adjusted hazard ratio"=hazard_ratio("Surv(time, status)", adjusted=TRUE))
                   )
 ```
 
@@ -120,9 +119,9 @@ TODO Talk about `neat_table` here
 neat_table(contingency_table(list("Age at diagnosis"="age",
                                "Sex"="sex"),
                                data=treat, 
-                               outcome=list("Treated"='treated'),
-                               models=list("Odds ratio"="odds_ratio",
-                                           "Adjusted odds ratio"="adj_odds_ratio"))
+                               strata=list("Treated"='treated'),
+                               models=list("Odds ratio"=odds_ratio(),
+                                           "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))
 )
 ```
 
@@ -138,9 +137,9 @@ As the output of `contingency_table` is also a matrix it can be used with the fa
 knitr::kable(contingency_table(list("Age at diagnosis"="age",
                                "Sex"="sex"),
                                data=treat, 
-                               outcome=list("Treated"='treated'),
-                               models=list("Odds ratio"="odds_ratio",
-                                           "Adjusted odds ratio"="adj_odds_ratio"))$mat,
+                               strata=list("Treated"='treated'),
+                               models=list("Odds ratio"=odds_ratio(),
+                                           "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))$mat,
              "html"
 )
 ```
@@ -149,9 +148,9 @@ knitr::kable(contingency_table(list("Age at diagnosis"="age",
 knitr::kable(contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
-                  outcome=list("Treated"='treated'),
-                  models=list("Odds ratio"="odds_ratio",
-                                 "Adjusted odds ratio"="adj_odds_ratio"))$mat,
+                  strata=list("Treated"='treated'),
+                  models=list("Odds ratio"=odds_ratio(),
+                              "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))$mat,
              "markdown"
 )
 ```
@@ -166,7 +165,7 @@ The ability to save the table to an Excel spreadsheet will be added in a future 
 
 ## Adding custom models
 
-For the advanced user, any regression model can be provided to the `functions` argument, and not just the specified options (`odds_ratio`, `adj_odds_ratio`, `hazard_ratio`, `adj_hazard_ratio`). These must be specified as functions with two parameters: 
+For the advanced user, any regression model can be provided to the `model` argument, and not just the specified options (`odds_ratio`, `adj_odds_ratio`, `hazard_ratio`, `adj_hazard_ratio`). These must be specified as functions with two parameters: 
 
   - `cat_var`: The independent variable of interest, expressed as a string
   - `data`: The data frame

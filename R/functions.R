@@ -4,20 +4,26 @@
 #' outcome variable of interest with a varying number of covariates and
 #' returns a list of the odds ratios for each level of the factor.
 #'
-#' @keywords internal
+#' @param outcome The dependent variable, defaults to the first \code{strata}
+#'   supplied to \code{contingency_table}.
+#' @param adjusted Whether to adjust for the other covariates, specified by
+#'   \code{cat_vars} argument to \code{contingency_table}.
 #'
-#' @param var The dependent variable
-#' @param data The data frame.
+#' @return A function that is used to calculate odds ratios.
 #'
-#' @return A vector of strings with the hazard ratios.
-#'
-build_or <- function(outcome, covars=NULL) {
+odds_ratio <- function(outcome=NULL, adjusted=FALSE) {
 
-    function(var, data) {
+    function(var, all_vars, first_strata, data) {
         # Used when no covariates are specified, thereby indicating
         # a univariate model
-        if (is.null(covars)) {
+        if (adjusted) {
+            covars <- all_vars
+        } else{
             covars <- var
+        }
+
+        if (is.null(outcome)) {
+            outcome <- first_strata
         }
         # Set baseline as largest group
         orig_levels <- levels(data[[var]])
@@ -68,19 +74,20 @@ build_or <- function(outcome, covars=NULL) {
 #' outcome survival object, with a single covariate and
 #' returns a list of the odds ratios for each level of the factor.
 #'
-#' @keywords internal
+#' @param outcome The dependent variable, specifies a \code{Surv} object
+#'   as a string.
+#' @param adjusted Whether to adjust for the other covariates, specified by
+#'   \code{cat_vars} argument to \code{contingency_table}.
 #'
-#' @param var The dependent variable
-#' @param data The data frame.
-#'
-#' @return A vector of strings with the hazard ratios.
-#'
-build_cox <- function(outcome, covars=NULL) {
+#' @return A function that is used to calculate hazard ratios.
+hazard_ratio <- function(outcome, adjusted=FALSE) {
 
-    function(var, data) {
+    function(var, all_vars, first_strata, data) {
         # Used when no covariates are specified, thereby indicating
         # a univariate model
-        if (is.null(covars)) {
+        if (adjusted) {
+            covars <- all_vars
+        } else {
             covars <- var
         }
 
