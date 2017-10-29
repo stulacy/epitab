@@ -56,9 +56,7 @@
 #' @export
 contingency_table <- function(cat_vars, data, strata=NULL, models=NULL,
                               frequency=TRUE) {
-    if (length(strata) == 2) {
-        stop("Having 2 strata isn't currently supported.")
-    } else if (length(strata) > 2) {
+    if (length(strata) > 2) {
         stop("Having more than 2 strata isn't possible.")
     }
 
@@ -105,7 +103,7 @@ contingency_table <- function(cat_vars, data, strata=NULL, models=NULL,
     raw_obj <- list(content=content,
                     overall_counts=overall,
                     overall_proportion=overall_props,
-                    outcome_label=names(strata),
+                    outcome_label=names(strata)[1],
                     funcs=names(models),
                     frequency=frequency,
                     has_outcome=!is.null(strata),

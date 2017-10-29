@@ -18,7 +18,8 @@ The first example is building contingency tables. The data set is a dummy one wi
 ```{r}
 treat <- data.frame(age=factor(sample(c("0-20", "21-60", ">61"), 100, replace=T), levels=c('0-20', '21-60', '>61')),
                     sex=factor(sample(c("M", "F"), 100, replace=T), levels=c('F', 'M')),
-                    treated=factor(sample(c("Yes", "No"), 100, replace=T), levels=c('Yes', 'No')))
+                    treated=factor(sample(c("Yes", "No"), 100, replace=T), levels=c('Yes', 'No')),
+                    athome=factor(sample(c("Yes", "No"), 100, replace=T), levels=c('Yes', 'No')))
 ```
 
 Note that age has been discretised into factors, as is required for this package to work.
@@ -47,7 +48,7 @@ The `functions` argument to `contingency_table` allows for the specification of 
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
-                  strata=list("Treated"='treated'),
+                  strata=list("Treated"='treated', "At home"="athome"),
                   models=list("Odds ratio"=odds_ratio()))
 ```
 
