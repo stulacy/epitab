@@ -11,11 +11,11 @@
 #' @param relevel_baseline Whether to use the largest level as the baseline.
 #'
 #' @return A function that is used to calculate hazard ratios.
-hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE) {
+hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE, digits=2) {
 
-    build_regression_model(outcome, adjusted, relevel_baseline, extract_coefs=function(formula, data) {
+    build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
         survival::coxph(formula, data)
-    })
+    }, digits=digits)
 }
 
 #' Builds a function used to calculate odds ratios.
@@ -32,14 +32,14 @@ hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE) {
 #'
 #' @return A function that is used to calculate odds ratios.
 #'
-odds_ratio <- function(outcome=NULL, adjusted=FALSE, relevel_baseline=TRUE) {
+odds_ratio <- function(outcome=NULL, adjusted=FALSE, relevel_baseline=TRUE, digits=2) {
 
-    build_regression_model(outcome, adjusted, relevel_baseline, extract_coefs = function(formula, data) {
+    build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
         stats::glm(formula, data, family=stats::binomial())
-    })
+    }, digits=digits)
 }
 
-build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_coefs) {
+build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_coefs, digits=2) {
 
     function(var, all_vars, first_strata, data) {
         # Used when no covariates are specified, thereby indicating
@@ -79,7 +79,7 @@ build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_
         estimates <- coefs[coef_labels]
 
         # Then round
-        estimates[modelled_levels] <- sapply(estimates[modelled_levels], function(x) sprintf("%0.2f", x))
+        estimates[modelled_levels] <- sapply(estimates[modelled_levels], function(x) sprintf("%.*f", digits, x))
 
         # Now get CIs
         raw_ci <- suppressMessages(exp(stats::confint(mod)))
@@ -91,7 +91,7 @@ build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_
             row.names(ci) <- modelled_levels
         }
         ci_str <- apply(ci, 1, function(row) {
-            sprintf("(%.2f - %.2f)", row[1], row[2])
+            sprintf("(%.*f - %.*f)", digits, row[1], digits, row[2])
         })
         # Add empty val for baseline
         ci_str <- c(ci_str, "")

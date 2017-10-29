@@ -1,6 +1,5 @@
 Items to do:
 
   - Allow a second stratification variable
-  - Allow specification of precision
   - Add summary statistics, such as chisq
   - Printing to excel function (text only)
