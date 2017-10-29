@@ -4,7 +4,7 @@
 \alias{neat_table}
 \title{Displays a neatly formatted table.}
 \usage{
-neat_table(table)
+neat_table(table, format = "html")
 }
 \arguments{
 \item{table}{A \code{crosstab} object.}

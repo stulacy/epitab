@@ -11,16 +11,15 @@
 #'
 #' @param cat_vars A named list of independent variables, where the names are
 #'   used as the column headers. The variables must be specified by strings.
-#' @param outcome The outcome variable of interest, provided as a named list.
-#'   Must be a factor. The outcome must be specified as a string.
+#' @param strata The variables to cross-tabulate by, provided as a named list of strings.
+#'   The specified variables must be factors. Currently only one strata is allowed.
 #' @param data The data set that contains the columns specified in
 #'   \code{cat_vars} and \code{outcome}.
+#' @param frequency Whether to include the counts of each level of \code{cat_vars}.
 #' @param models An optional list of functions that apply a model to the
 #'   data, providing a value for each level of the factors specified in
 #'   \code{cat_vars}. See the vignette for a description of how to specify this.
 #'   One function \code{odds_ratio} comes provided with the package.
-#' @param cox_outcome A survival object representing the survival outcome of the
-#'   Cox model.
 #'
 #' @return An S3 object of class \code{contintab}, that provides the cell contents
 #'   as a matrix of strings.
@@ -40,41 +39,31 @@
 #'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
-#'                    outcome=list('Treated'='treated'))
+#'                    strata=list('Treated'='treated'))
 #'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
-#'                    outcome=list('Treated'='treated'),
-#'                    models=list("Odds ratio"="odds_ratio"))
+#'                    strata=list('Treated'='treated'),
+#'                    models=list("Odds ratio"=odds_ratio()))
 #'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
-#'                    outcome=list('Treated'='treated'),
-#'                    models=list("Odds ratio"="odds_ratio",
-#'                                "Adjusted odds ratio"="adj_odds_ratio"))
+#'                    strata=list('Treated'='treated'),
+#'                    models=list("Odds ratio"=odds_ratio(),
+#'                                "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))
 #'
 #'
 #' @export
-contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_outcome=NULL,
-                              frequency=TRUE, custom_functions=NULL) {
-    if (length(outcome) == 2) {
-        stop("Having 2 cross refs isn't currently supported.")
-    } else if (length(outcome) > 2) {
-        stop("Having more than 2 cross refs isn't possible.")
+contingency_table <- function(cat_vars, data, strata=NULL, models=NULL,
+                              frequency=TRUE) {
+    if (length(strata) == 2) {
+        stop("Having 2 strata isn't currently supported.")
+    } else if (length(strata) > 2) {
+        stop("Having more than 2 strata isn't possible.")
     }
 
-    if (!is.null(custom_functions)) {
-        stop("Error: currently do not have custom functions functionality supported.")
-    }
-
-    func_options <- c('odds_ratio', 'adj_odds_ratio', 'hazard_ratio', 'adj_hazard_ratio')
-
-    if (is.null(outcome) & "odds_ratio" %in% models) {
-        stop("Error: Cannot calculate odds or adjusted odds ratio when outcome is null.")
-    }
-
-    if (!is.null(outcome)) {
-        outcome_val <- outcome[[1]]
+    if (!is.null(strata)) {
+        outcome_val <- strata[[1]]
     }
 
     for (cat in cat_vars) {
@@ -83,44 +72,8 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
         }
     }
 
-    # TODO Add separate list for custom functions
-    full_funcs <- list()
-    for (fn in names(models)) {
-        f <- models[[fn]]
-        if (!f %in% func_options) {
-            stop("Error: function type '", f, "' unknown. Options are ", paste(func_options, collapse=', '))
-        }
-
-        # Run closure and generate function
-        if (f == 'odds_ratio') {
-            full_funcs[[fn]] <- build_or(outcome_val)
-        } else if (f == "adj_odds_ratio") {
-            full_funcs[[fn]] <- build_or(outcome_val, unlist(cat_vars))
-        } else if (grepl('hazard', f)) {
-            if (is.null(cox_outcome)) {
-                stop("Error: Please provide a survival object in 'cox_outcome' when trying to display hazard ratios.")
-            }
-
-            if (f == 'hazard_ratio') {
-                full_funcs[[fn]] <- build_cox(cox_outcome)
-
-            } else if (f == "adj_hazard_ratio") {
-                full_funcs[[fn]] <- build_cox(cox_outcome, unlist(cat_vars))
-            }
-        }
-    }
-    for (fn in custom_functions) {
-        f <- custom_functions[[fn]]
-        if (class(f) == "function") {
-            # Check has 2 arguments
-            full_funcs[[fn]] <- f
-        } else {
-            stop("Error: custom functions must be of type function")
-        }
-    }
-
     # Calculate cross-reference freq overall
-    if (!is.null(outcome)) {
+    if (!is.null(strata)) {
         overall <- table(data[[outcome_val]])
         overall_props <- overall / nrow(data)
     } else {
@@ -131,7 +84,7 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
     content <- lapply(cat_vars, function(var) {
         # Calculate table frequencies overall
         counts <- table(data[[var]])
-        if (!is.null(outcome)) {
+        if (!is.null(strata)) {
             # Calculate 2x2 table frequencies with proportions
             cross_counts <- table(data[[var]], data[[outcome_val]])
             cross_props <- apply(cross_counts, 2, "/", counts)
@@ -140,7 +93,7 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
             cross_props <- NULL
         }
         # Apply function
-        func_vals <- lapply(full_funcs, function(x) x(var, data))
+        func_vals <- lapply(models, function(x) x(var, cat_vars, outcome_val, data))
 
         list(counts=counts,
              cross_counts=cross_counts,
@@ -152,12 +105,12 @@ contingency_table <- function(cat_vars, data, outcome=NULL, models=NULL, cox_out
     raw_obj <- list(content=content,
                     overall_counts=overall,
                     overall_proportion=overall_props,
-                    outcome_label=names(outcome),
-                    funcs=names(full_funcs),
+                    outcome_label=names(strata),
+                    funcs=names(models),
                     frequency=frequency,
-                    has_outcome=!is.null(outcome),
+                    has_outcome=!is.null(strata),
                     num_obs=nrow(data),
-                    num_headers=1 + length(outcome))
+                    num_headers=1 + length(strata))
 
     mat <- convert_list_to_matrix(raw_obj)
     raw_obj$mat <- mat
