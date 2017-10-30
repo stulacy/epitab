@@ -6,12 +6,11 @@
 #'
 #' @importFrom magrittr %>%
 #' @export
-#TODO Add funtionality for HTML and LaTeX
-neat_table <- function(table, format="html") {
+neat_table <- function(table, format="html", ...) {
     mat <- table$mat
     content <- mat[(table$num_headers+1):nrow(mat), ]
     header <- mat[table$num_headers, ]
-    obj <- knitr::kable(content, col.names=header, format=format)
+    obj <- knitr::kable(content, col.names=header, format=format, ...)
     if (table$num_headers > 1) {
         cnames <- c(rep(" ", 2 + as.numeric(table$frequency)),
                     table$outcome_label,
