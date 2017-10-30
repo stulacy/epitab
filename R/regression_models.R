@@ -11,6 +11,8 @@
 #' @param relevel_baseline Whether to use the largest level as the baseline.
 #'
 #' @return A function that is used to calculate hazard ratios.
+#'
+#' @export
 hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE, digits=2) {
 
     build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
@@ -32,6 +34,7 @@ hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE, digits=
 #'
 #' @return A function that is used to calculate odds ratios.
 #'
+#' @export
 odds_ratio <- function(outcome=NULL, adjusted=FALSE, relevel_baseline=TRUE, digits=2) {
 
     build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {

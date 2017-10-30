@@ -4,7 +4,8 @@
 \alias{odds_ratio}
 \title{Builds a function used to calculate odds ratios.}
 \usage{
-odds_ratio(outcome = NULL, adjusted = FALSE, relevel_baseline = TRUE)
+odds_ratio(outcome = NULL, adjusted = FALSE, relevel_baseline = TRUE,
+  digits = 2)
 }
 \arguments{
 \item{outcome}{The dependent variable, defaults to the first \code{strata}

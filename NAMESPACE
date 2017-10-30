@@ -2,5 +2,7 @@
 
 S3method(print,contintab)
 export(contingency_table)
+export(hazard_ratio)
 export(neat_table)
+export(odds_ratio)
 importFrom(magrittr,"%>%")

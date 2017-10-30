@@ -4,7 +4,8 @@
 \alias{hazard_ratio}
 \title{Builds a function used to calculate hazard ratios.}
 \usage{
-hazard_ratio(outcome, adjusted = FALSE, relevel_baseline = TRUE)
+hazard_ratio(outcome, adjusted = FALSE, relevel_baseline = TRUE,
+  digits = 2)
 }
 \arguments{
 \item{outcome}{The dependent variable, specifies a \code{Surv} object

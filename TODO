@@ -1,5 +1,9 @@
-Items to do:
+First release:
+  - Finalise variable names
+  - Improve documentation
+  - Update vignette to include an example of a custom model
 
+Further features:
   - Allow a second stratification variable
   - Add summary statistics, such as chisq
   - Printing to excel function (text only)
