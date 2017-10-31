@@ -1,7 +1,7 @@
 First release:
-  - Finalise variable names
-  - Improve documentation
+  - Add column wise functions
   - Update vignette to include an example of a custom model
+  - Column names as raw expressions
 
 Further features:
   - Allow a second stratification variable

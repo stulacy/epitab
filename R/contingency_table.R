@@ -9,17 +9,21 @@
 #' This function builds up a contingency table to summarise a data set, which
 #' can later be exported in a publication friendly format.
 #'
-#' @param cat_vars A named list of independent variables, where the names are
-#'   used as the column headers. The variables must be specified by strings.
-#' @param strata The variables to cross-tabulate by, provided as a named list of strings.
-#'   The specified variables must be factors. Currently only one strata is allowed.
+#' @param independents A named list of independent variables, which will
+#'   be distributed down the table's rows. The variables must be specified
+#'   by strings, with the item name used as the column header.
+#' @param outcomes The variables to cross-tabulate by. These will be
+#'   distributed across the table's columns. Specified as a named list of strings.
+#'   Must correspond to factor or character variables.
 #' @param data The data set that contains the columns specified in
 #'   \code{cat_vars} and \code{outcome}.
 #' @param frequency Whether to include the counts of each level of \code{cat_vars}.
-#' @param models An optional list of functions that apply a model to the
-#'   data, providing a value for each level of the factors specified in
-#'   \code{cat_vars}. See the vignette for a description of how to specify this.
-#'   One function \code{odds_ratio} comes provided with the package.
+#' @param row_funcs A list of functions that are applied row-wise to the table,
+#'   one independent variable at a time, providing a value for each level of
+#'   the factors specified in \code{independents}.
+#'   See the vignette for a description of how to specify this.
+#'   Two functions: \code{odds_ratio} and \code{hazard_ratio} come
+#'   provided with the package.
 #'
 #' @return An S3 object of class \code{contintab}, that provides the cell contents
 #'   as a matrix of strings.
@@ -39,76 +43,80 @@
 #'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
-#'                    strata=list('Treated'='treated'))
+#'                    outcomes=list('Treated'='treated'))
 #'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
-#'                    strata=list('Treated'='treated'),
-#'                    models=list("Odds ratio"=odds_ratio()))
+#'                    outcomes=list('Treated'='treated'),
+#'                    row_funcs=list("Odds ratio"=odds_ratio('treated')))
 #'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
-#'                    strata=list('Treated'='treated'),
-#'                    models=list("Odds ratio"=odds_ratio(),
-#'                                "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))
+#'                    outcomes=list('Treated'='treated'),
+#'                    row_funcs=list("Odds ratio"=odds_ratio('treated'),
+#'                                "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE)))
 #'
 #'
 #' @export
-contingency_table <- function(cat_vars, data, strata=NULL, models=NULL,
-                              frequency=TRUE) {
-    if (length(strata) > 2) {
-        stop("Having more than 2 strata isn't possible.")
+contingency_table <- function(independents, data, outcomes=NULL,
+                              row_funcs=NULL, frequency=TRUE) {
+    if (length(outcomes) > 2) {
+        stop("Having more than 2 outcomes isn't possible.")
     }
 
-    if (!is.null(strata)) {
-        outcome_val <- strata[[1]]
-    }
-
-    for (cat in cat_vars) {
+    for (cat in independents) {
         if (!is.factor(data[[cat]]) & typeof(data[[cat]]) != 'character') {
             stop("Error: ", cat, " variable isn't a factor or character. Please reencode it as such.")
         }
     }
 
-    # Calculate cross-reference freq overall
-    if (!is.null(strata)) {
+    raw_content <- lapply(outcomes, function(outcome_val) {
+        # Calculate cross-reference freq overall
         overall <- table(data[[outcome_val]])
         overall_props <- overall / nrow(data)
-    } else {
-        overall <- NULL
-        overall_props <- NULL
-    }
 
-    content <- lapply(cat_vars, function(var) {
-        # Calculate table frequencies overall
-        counts <- table(data[[var]])
-        if (!is.null(strata)) {
+        content <- lapply(independents, function(var) {
+            # Calculate table frequencies overall
+            counts <- table(data[[var]])
             # Calculate 2x2 table frequencies with proportions
             cross_counts <- table(data[[var]], data[[outcome_val]])
             cross_props <- apply(cross_counts, 2, "/", counts)
-        } else {
-            cross_counts <- NULL
-            cross_props <- NULL
-        }
-        # Apply function
-        func_vals <- lapply(models, function(x) x(var, cat_vars, outcome_val, data))
 
-        list(counts=counts,
-             cross_counts=cross_counts,
-             cross_proportion=cross_props,
-             function_vals=func_vals,
-             levels=levels(data[[var]]))
+            list(cross_counts=cross_counts,
+                 cross_proportion=cross_props)
+        })
+        list(overall=overall, overall_props=overall_props,
+             dependent_freqs=content)
     })
 
-    raw_obj <- list(content=content,
-                    overall_counts=overall,
-                    overall_proportion=overall_props,
-                    outcome_label=names(strata)[1],
-                    funcs=names(models),
+    cat_counts <- lapply(independents, function(var) {
+        table(data[[var]])
+    })
+
+    # Apply functions
+    func_vals <- lapply(independents, function(var) {
+        lapply(row_funcs, function(x) x(var, independents, data))
+    })
+
+    if (!is.null(outcomes)) {
+        outcome_levels <- lapply(outcomes, function(var) levels(data[[var]]))
+    } else {
+        outcome_levels <- list(c())
+    }
+
+    # Calculate regression coefficients
+    raw_obj <- list(content=raw_content,
+                    funcs=names(row_funcs),
+                    func_vals=func_vals,
+                    cat_vars=independents,
+                    cat_counts=cat_counts,
+                    outcomes=outcomes,
+                    cat_levels=lapply(independents, function(var) levels(data[[var]])),
+                    outcome_levels=outcome_levels,
                     frequency=frequency,
-                    has_outcome=!is.null(strata),
+                    has_outcome=!is.null(outcomes),
                     num_obs=nrow(data),
-                    num_headers=1 + length(strata))
+                    num_headers=1 + as.numeric(!is.null(outcomes)))
 
     mat <- convert_list_to_matrix(raw_obj)
     raw_obj$mat <- mat
@@ -128,18 +136,14 @@ contingency_table <- function(cat_vars, data, strata=NULL, models=NULL,
 #' Internal helper function
 #'
 convert_list_to_matrix <- function(x) {
-    cont <- x$content
-    cat_vars <- names(cont)
+
     funcs <- x$funcs
     nfuncs <- if (is.null(funcs)) 0 else length(funcs)
-    num_cross_levels <- length(x$overall_counts)
-    if (num_cross_levels > 0) {
-        cross_level_labels <- colnames(x$content[[1]]$cross_counts)
-    }
+    num_cross_levels <- sum(sapply(x$outcome_levels, length))
 
     # Setup empty matrix to hold the table
     ncols <- 2 + as.numeric(x$frequency) + num_cross_levels + nfuncs
-    nrows <- sum(sapply(cat_vars, function(var) length(cont[[var]]$levels) + 1)) + x$num_headers
+    nrows <- sum(sapply(x$cat_levels, function(var) length(var)+1)) + x$num_headers
     if (x$frequency | x$has_outcome) {
         nrows <- nrows + 2
     }
@@ -157,10 +161,9 @@ convert_list_to_matrix <- function(x) {
         col_num <- 3
     }
 
-    if (x$has_outcome) {
-        # Outcome labels are always first row
-        tab[1, col_num] <- x$outcome_label
-        col_num <- col_num + num_cross_levels
+    for (outcome in names(x$outcome_levels)) {
+        tab[1, col_num] <- outcome
+        col_num <- col_num + length(x$outcome_levels[[outcome]])
     }
 
     if (nfuncs > 0) {
@@ -170,9 +173,11 @@ convert_list_to_matrix <- function(x) {
     }
 
     # First content row is the outcome variable levels.
-    if (x$has_outcome) {
-        for (i in seq_len(num_cross_levels)) {
-            tab[2, 2 + as.numeric(x$frequency) + i] <- cross_level_labels[i]
+    col_num <- 3 + as.numeric(x$frequency)
+    for (outcome in x$outcome_levels) {
+        for (var in outcome) {
+            tab[2, col_num] <- var
+            col_num <- col_num + 1
         }
     }
 
@@ -184,48 +189,61 @@ convert_list_to_matrix <- function(x) {
         tab[curr_row_num, 2] <- "Total"
         if (x$frequency) {
             tab[curr_row_num, 3] <- x$num_obs
-            col_num <- 3
+            col_num <- 4
         } else {
-            col_num <- 2
+            col_num <- 3
         }
 
-        for (i in seq_len(num_cross_levels)) {
-            tab[curr_row_num, col_num+i] <- paste0(x$overall_counts[i], " (", round(x$overall_proportion[i], 2), ")")
+        for (outcome in x$content) {
+            for (i in seq_along(outcome$overall)) {
+                tab[curr_row_num, col_num] <- paste0(outcome$overall[i], " (", round(outcome$overall_props[i], 2), ")")
+                col_num <- col_num + 1
+            }
         }
 
         curr_row_num <- curr_row_num + 1
     }
 
     # Then add the content split by variable
-    for (cat_num in seq_along(cat_vars)) {
-        curr_row_num <- curr_row_num + 1  # Add a blank line between variables
+    for (var in names(x$cat_vars)) {
+        var_start_row <- curr_row_num + 1  # Add a blank line between variables
+        var_levels <- x$cat_levels[[var]]
 
-        var <- cat_vars[cat_num]
-        varcont <- cont[[var]]
-
-        num_levs <- length(varcont$levels)
-        for (i in 1:num_levs) {
+        # Display categorical variable and level names
+        for (i in seq_along(var_levels)) {
             if (i == 1) {
-                tab[curr_row_num, 1] <- var
+                tab[var_start_row+i-1, 1] <- var
             }
-
-            tab[curr_row_num, 2] <- varcont$levels[i]  # name of level
-            if (x$frequency) {
-                tab[curr_row_num, 3] <- varcont$counts[i]         # overall count
-                col_num <- 3
-            } else {
-                col_num <- 2
-            }
-            for (j in seq_len(num_cross_levels)) {              # add count per level of cross-ref var (with proportion in brackets)
-                tab[curr_row_num, col_num + j] <- paste0(varcont$cross_counts[i, j], " (", round(varcont$cross_proportion[i, j], 2), ")")
-            }
-            # Add function vars
-            for (j in seq_along(funcs)) {
-                tab[curr_row_num, col_num+num_cross_levels+j] <- varcont$function_vals[[funcs[j]]][i]
-            }
-
-            curr_row_num <- curr_row_num + 1
+            tab[var_start_row+i-1, 2] <- var_levels[i]  # name of level
+            if (x$frequency)
+                tab[var_start_row+i-1, 3] <- x$cat_counts[[var]][i] # overall count
         }
+        if (x$frequency) {
+            starting_crosstab_col <- 4
+        } else {
+            starting_crosstab_col <- 3
+        }
+
+        # Display cross-tab
+        for (i in seq_along(x$cat_levels[[var]])) {
+            col_num <- starting_crosstab_col
+            for (outcome in names(x$content)) {
+            varcont <- x$content[[outcome]]$dependent_freqs[[var]]
+                for (j in seq_along(x$outcome_levels[[outcome]])) { # add count per level of cross-ref var (with proportion in brackets)
+                    tab[var_start_row+i-1, col_num] <- paste0(varcont$cross_counts[i, j], " (", round(varcont$cross_proportion[i, j], 2), ")")
+                    col_num <- col_num + 1
+                }
+            }
+        }
+
+        # Add function vars
+        func_starting_col <- starting_crosstab_col + num_cross_levels
+        for (i in seq_along(x$cat_levels[[var]])) {
+            for (j in seq_along(funcs)) {
+                tab[var_start_row+i-1, func_starting_col+j-1] <- x$func_vals[[var]][[j]][i]
+            }
+        }
+        curr_row_num <- var_start_row + length(x$cat_levels[[var]])
     }
     tab
 }

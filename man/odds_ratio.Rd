@@ -4,17 +4,17 @@
 \alias{odds_ratio}
 \title{Builds a function used to calculate odds ratios.}
 \usage{
-odds_ratio(outcome = NULL, adjusted = FALSE, relevel_baseline = TRUE,
-  digits = 2)
+odds_ratio(outcome, adjusted = FALSE, relevel_baseline = TRUE, digits = 2)
 }
 \arguments{
-\item{outcome}{The dependent variable, defaults to the first \code{strata}
-supplied to \code{contingency_table}.}
+\item{outcome}{The dependent variable as a string.}
 
 \item{adjusted}{Whether to adjust for the other covariates, specified by
 \code{cat_vars} argument to \code{contingency_table}.}
 
 \item{relevel_baseline}{Whether to use the largest level as the baseline.}
+
+\item{digits}{The number of digits to display.}
 }
 \value{
 A function that is used to calculate odds ratios.
@@ -23,4 +23,8 @@ A function that is used to calculate odds ratios.
 Builds a function to calculate logistic regression on the
 outcome variable of interest with a varying number of covariates and
 returns a list of the odds ratios for each level of the factor.
+}
+\details{
+See documentation for \code{contingency_table} and vignette
+for usage.
 }

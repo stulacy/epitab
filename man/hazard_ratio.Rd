@@ -15,6 +15,8 @@ as a string.}
 \code{cat_vars} argument to \code{contingency_table}.}
 
 \item{relevel_baseline}{Whether to use the largest level as the baseline.}
+
+\item{digits}{The number of digits to display.}
 }
 \value{
 A function that is used to calculate hazard ratios.
@@ -23,4 +25,8 @@ A function that is used to calculate hazard ratios.
 Builds a function to build a Cox model on the
 outcome survival object, with a single covariate and
 returns a list of the odds ratios for each level of the factor.
+}
+\details{
+See documentation for \code{contingency_table} and vignette
+for usage.
 }

@@ -4,23 +4,27 @@
 \alias{contingency_table}
 \title{Builds a contingency table}
 \usage{
-contingency_table(cat_vars, data, strata = NULL, models = NULL,
+contingency_table(independents, data, outcomes = NULL, row_funcs = NULL,
   frequency = TRUE)
 }
 \arguments{
-\item{cat_vars}{A named list of independent variables, where the names are
-used as the column headers. The variables must be specified by strings.}
+\item{independents}{A named list of independent variables, which will
+be distributed down the table's rows. The variables must be specified
+by strings, with the item name used as the column header.}
 
 \item{data}{The data set that contains the columns specified in
 \code{cat_vars} and \code{outcome}.}
 
-\item{strata}{The variables to cross-tabulate by, provided as a named list of strings.
-The specified variables must be factors. Currently only one strata is allowed.}
+\item{outcomes}{The variables to cross-tabulate by. These will be
+distributed across the table's columns. Specified as a named list of strings.
+Must correspond to factor or character variables.}
 
-\item{models}{An optional list of functions that apply a model to the
-data, providing a value for each level of the factors specified in
-\code{cat_vars}. See the vignette for a description of how to specify this.
-One function \code{odds_ratio} comes provided with the package.}
+\item{row_funcs}{A list of functions that are applied row-wise to the table,
+one independent variable at a time, providing a value for each level of
+the factors specified in \code{independents}.
+See the vignette for a description of how to specify this.
+Two functions: \code{odds_ratio} and \code{hazard_ratio} come
+provided with the package.}
 
 \item{frequency}{Whether to include the counts of each level of \code{cat_vars}.}
 }
@@ -54,18 +58,18 @@ treat_df <- data.frame(age=factor(sample(c("0-20", "21-60", ">61"), 100, replace
 
  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
                    treat_df,
-                   strata=list('Treated'='treated'))
+                   outcomes=list('Treated'='treated'))
 
  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
                    treat_df,
-                   strata=list('Treated'='treated'),
-                   models=list("Odds ratio"=odds_ratio()))
+                   outcomes=list('Treated'='treated'),
+                   row_funcs=list("Odds ratio"=odds_ratio('treated')))
 
  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
                    treat_df,
-                   strata=list('Treated'='treated'),
-                   models=list("Odds ratio"=odds_ratio(),
-                               "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))
+                   outcomes=list('Treated'='treated'),
+                   row_funcs=list("Odds ratio"=odds_ratio('treated'),
+                               "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE)))
 
 
 }

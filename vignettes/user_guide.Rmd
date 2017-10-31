@@ -9,6 +9,11 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r}
+library(epitab)
+library(dplyr)
+```
+
 This vignette provides examples for building contingency tables using `epitab`.
 
 ## Simple cross-tabulation
@@ -34,7 +39,7 @@ The primary functionality provided by the package is similar to `stat.table` fro
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat,
-                  strata=list("Treated"='treated'))
+                  outcomes=list("Treated"='treated'))
 ```
 
 ## Adding model outputs
@@ -48,8 +53,9 @@ The `functions` argument to `contingency_table` allows for the specification of 
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
-                  strata=list("Treated"='treated', "At home"="athome"),
-                  models=list("Odds ratio"=odds_ratio()))
+                  outcomes=list("Treated"='treated'),
+                  row_funcs=list("Odds ratio"=odds_ratio('treated'))
+                              )
 ```
 
 Another useful model is to adjust for the other covariates when building the model. This is provided with the `adj_odds_ratio` option.
@@ -60,8 +66,8 @@ Another useful model is to adjust for the other covariates when building the mod
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
-                  strata=list("Treated"='treated'),
-                  models=list("Adjusted odds ratio"=odds_ratio(adjusted = TRUE)))
+                  outcomes=list("Treated"='treated'),
+                  row_funcs=list("Adjusted odds ratio"=odds_ratio('treated', adjusted = TRUE)))
 ```
 
 Any number of regression models can be fitted, the table below displays both the univariate odds ratios and those resulting from a model that controls for the other variables. Note that since this dummy data set has been randomly generated with every variable independent of each other, there is minimal difference between these models.
@@ -70,9 +76,9 @@ Any number of regression models can be fitted, the table below displays both the
 contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
-                  strata=list("Treated"='treated'),
-                  models=list("Odds ratio"=odds_ratio(),
-                              "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))
+                  outcomes=list("Treated"='treated'),
+                  row_funcs=list("Odds ratio"=odds_ratio('treated'),
+                              "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE)))
 ```
 
 ## Survival models
@@ -102,8 +108,8 @@ contingency_table(list("Age at Diagnosis (years)"="agegrp",
                         "Sex"="sex"),
                   data=prevsim,
                   frequency = T,
-                  strata=list("Five year survival"="fiveyrsurv"),
-                  models=list("Hazard ratio"=hazard_ratio("Surv(time, status)"),
+                  outcomes=list("Five year survival"="fiveyrsurv"),
+                  row_funcs=list("Hazard ratio"=hazard_ratio("Surv(time, status)"),
                               "Adjusted hazard ratio"=hazard_ratio("Surv(time, status)", adjusted=TRUE))
                   )
 ```
@@ -117,13 +123,23 @@ As stated above, the default `print` method of these contingency tables is desig
 TODO Talk about `neat_table` here
 
 ```{r}
-neat_table(contingency_table(list("Age at diagnosis"="age",
-                               "Sex"="sex"),
-                               data=treat, 
-                               strata=list("Treated"='treated'),
-                               models=list("Odds ratio"=odds_ratio(),
-                                           "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))
-)
+contingency_table(list("Age at diagnosis"="age",
+                       "Sex"="sex"),
+                  data=treat, 
+                  outcomes=list("Treated"='treated'),
+                  row_funcs=list("Odds ratio"=odds_ratio('treated'),
+                              "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE))) %>%
+              neat_table()
+```
+
+```{r}
+contingency_table(list("Age at diagnosis"="age",
+                       "Sex"="sex"),
+                  data=treat, 
+                  outcomes=list("Treated"='treated',
+                                "At Home"='athome'),
+                  row_funcs=list("Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE))) %>%
+              neat_table()
 ```
 
 ### `kable`
@@ -138,9 +154,9 @@ As the output of `contingency_table` is also a matrix it can be used with the fa
 knitr::kable(contingency_table(list("Age at diagnosis"="age",
                                "Sex"="sex"),
                                data=treat, 
-                               strata=list("Treated"='treated'),
-                               models=list("Odds ratio"=odds_ratio(),
-                                           "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))$mat,
+                               outcomes=list("Treated"='treated'),
+                               row_funcs=list("Odds ratio"=odds_ratio('treated'),
+                                           "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE)))$mat,
              "html"
 )
 ```
@@ -149,9 +165,9 @@ knitr::kable(contingency_table(list("Age at diagnosis"="age",
 knitr::kable(contingency_table(list("Age at diagnosis"="age",
                        "Sex"="sex"),
                   data=treat, 
-                  strata=list("Treated"='treated'),
-                  models=list("Odds ratio"=odds_ratio(),
-                              "Adjusted odds ratio"=odds_ratio(adjusted=TRUE)))$mat,
+                  outcomes=list("Treated"='treated'),
+                  row_funcs=list("Odds ratio"=odds_ratio('treated'),
+                              "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE)))$mat,
              "markdown"
 )
 ```

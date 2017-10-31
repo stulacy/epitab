@@ -1,14 +1,40 @@
+#' Builds a function used to calculate odds ratios.
+#'
+#' Builds a function to calculate logistic regression on the
+#' outcome variable of interest with a varying number of covariates and
+#' returns a list of the odds ratios for each level of the factor.
+#'
+#' See documentation for \code{contingency_table} and vignette
+#' for usage.
+#'
+#' @param outcome The dependent variable as a string.
+#' @param adjusted Whether to adjust for the other covariates, specified by
+#'   \code{cat_vars} argument to \code{contingency_table}.
+#' @param relevel_baseline Whether to use the largest level as the baseline.
+#' @param digits The number of digits to display.
+#'
+#' @return A function that is used to calculate odds ratios.
+#'
+#' @export
+odds_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE, digits=2) {
+
+    build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
+        stats::glm(formula, data, family=stats::binomial())
+    }, digits=digits)
+}
+
 #' Builds a function used to calculate hazard ratios.
 #'
 #' Builds a function to build a Cox model on the
 #' outcome survival object, with a single covariate and
 #' returns a list of the odds ratios for each level of the factor.
 #'
+#' See documentation for \code{contingency_table} and vignette
+#' for usage.
+#'
+#' @inheritParams odds_ratio
 #' @param outcome The dependent variable, specifies a \code{Surv} object
 #'   as a string.
-#' @param adjusted Whether to adjust for the other covariates, specified by
-#'   \code{cat_vars} argument to \code{contingency_table}.
-#' @param relevel_baseline Whether to use the largest level as the baseline.
 #'
 #' @return A function that is used to calculate hazard ratios.
 #'
@@ -20,41 +46,16 @@ hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE, digits=
     }, digits=digits)
 }
 
-#' Builds a function used to calculate odds ratios.
-#'
-#' Builds a function to calculate logistic regression on the
-#' outcome variable of interest with a varying number of covariates and
-#' returns a list of the odds ratios for each level of the factor.
-#'
-#' @param outcome The dependent variable, defaults to the first \code{strata}
-#'   supplied to \code{contingency_table}.
-#' @param adjusted Whether to adjust for the other covariates, specified by
-#'   \code{cat_vars} argument to \code{contingency_table}.
-#' @param relevel_baseline Whether to use the largest level as the baseline.
-#'
-#' @return A function that is used to calculate odds ratios.
-#'
-#' @export
-odds_ratio <- function(outcome=NULL, adjusted=FALSE, relevel_baseline=TRUE, digits=2) {
-
-    build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
-        stats::glm(formula, data, family=stats::binomial())
-    }, digits=digits)
-}
 
 build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_coefs, digits=2) {
 
-    function(var, all_vars, first_strata, data) {
+    function(var, all_vars, data) {
         # Used when no covariates are specified, thereby indicating
         # a univariate model
         if (adjusted) {
             covars <- all_vars
         } else {
             covars <- var
-        }
-
-        if (is.null(outcome)) {
-            outcome <- first_strata
         }
 
         # Set baseline as largest group

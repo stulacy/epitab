@@ -4,10 +4,15 @@
 \alias{neat_table}
 \title{Displays a neatly formatted table.}
 \usage{
-neat_table(table, format = "html")
+neat_table(table, format = "html", ...)
 }
 \arguments{
 \item{table}{A \code{crosstab} object.}
+
+\item{format}{A string specifying output format passed to \code{knitr::kable}.
+Currently only 'html' and 'pdf' are supported.}
+
+\item{...}{Other arguments passed to \code{knitr::kable}.}
 }
 \value{
 A \code{kable} object.
