@@ -5,7 +5,7 @@
 \title{Builds a contingency table}
 \usage{
 contingency_table(independents, data, outcomes = NULL, row_funcs = NULL,
-  frequency = TRUE)
+  col_funcs = NULL, frequency = TRUE)
 }
 \arguments{
 \item{independents}{A named list of independent variables, which will

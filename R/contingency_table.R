@@ -59,7 +59,9 @@
 #'
 #' @export
 contingency_table <- function(independents, data, outcomes=NULL,
-                              row_funcs=NULL, frequency=TRUE) {
+                              row_funcs=NULL,
+                              col_funcs=NULL,
+                              frequency=TRUE) {
     if (length(outcomes) > 2) {
         stop("Having more than 2 outcomes isn't possible.")
     }
@@ -93,9 +95,14 @@ contingency_table <- function(independents, data, outcomes=NULL,
         table(data[[var]])
     })
 
-    # Apply functions
-    func_vals <- lapply(independents, function(var) {
+    row_func_vals <- lapply(independents, function(var) {
         lapply(row_funcs, function(x) x(var, independents, data))
+    })
+
+    col_func_vals <- lapply(col_funcs, function(func) {
+        lapply(outcomes, function(out) {
+            func(out, data)
+        })
     })
 
     if (!is.null(outcomes)) {
@@ -106,8 +113,10 @@ contingency_table <- function(independents, data, outcomes=NULL,
 
     # Calculate regression coefficients
     raw_obj <- list(content=raw_content,
-                    funcs=names(row_funcs),
-                    func_vals=func_vals,
+                    row_func_labels=names(row_funcs),
+                    row_func_vals=row_func_vals,
+                    col_func_labels=names(col_funcs),
+                    col_func_vals=col_func_vals,
                     cat_vars=independents,
                     cat_counts=cat_counts,
                     outcomes=outcomes,
@@ -137,13 +146,17 @@ contingency_table <- function(independents, data, outcomes=NULL,
 #'
 convert_list_to_matrix <- function(x) {
 
-    funcs <- x$funcs
-    nfuncs <- if (is.null(funcs)) 0 else length(funcs)
+    row_funcs <- x$row_func_labels
+    nrowfuncs <- if (is.null(row_funcs)) 0 else length(row_funcs)
+
+    col_funcs <- x$col_func_labels
+    ncolfuncs <- if (is.null(col_funcs)) 0 else length(col_funcs)
+
     num_cross_levels <- sum(sapply(x$outcome_levels, length))
 
     # Setup empty matrix to hold the table
-    ncols <- 2 + as.numeric(x$frequency) + num_cross_levels + nfuncs
-    nrows <- sum(sapply(x$cat_levels, function(var) length(var)+1)) + x$num_headers
+    ncols <- 2 + as.numeric(x$frequency) + num_cross_levels + nrowfuncs
+    nrows <- sum(sapply(x$cat_levels, function(var) length(var)+1)) + x$num_headers + 2 * ncolfuncs
     if (x$frequency | x$has_outcome) {
         nrows <- nrows + 2
     }
@@ -166,9 +179,9 @@ convert_list_to_matrix <- function(x) {
         col_num <- col_num + length(x$outcome_levels[[outcome]])
     }
 
-    if (nfuncs > 0) {
-        for (i in 1:nfuncs) {
-            tab[header_row, col_num - 1 + i] <- funcs[i]
+    if (nrowfuncs > 0) {
+        for (i in 1:nrowfuncs) {
+            tab[header_row, col_num - 1 + i] <- row_funcs[i]
         }
     }
 
@@ -239,11 +252,33 @@ convert_list_to_matrix <- function(x) {
         # Add function vars
         func_starting_col <- starting_crosstab_col + num_cross_levels
         for (i in seq_along(x$cat_levels[[var]])) {
-            for (j in seq_along(funcs)) {
-                tab[var_start_row+i-1, func_starting_col+j-1] <- x$func_vals[[var]][[j]][i]
+            for (j in seq_along(row_funcs)) {
+                tab[var_start_row+i-1, func_starting_col+j-1] <- x$row_func_vals[[var]][[j]][i]
             }
         }
         curr_row_num <- var_start_row + length(x$cat_levels[[var]])
+    }
+
+    # Now add col functions
+    for (i in seq_along(x$col_func_vals)) {
+        curr_row_num <- curr_row_num + 1
+        tab[curr_row_num, 1] <- col_funcs[i]
+        outcomes <- x$col_func_vals[[i]]
+        if (x$frequency) {
+            start_col_num <- 4
+        } else {
+            start_col_num <- 3
+        }
+
+        col_num <- start_col_num
+
+        for (outcome in outcomes) {
+            for (val in outcome) {
+                tab[curr_row_num, col_num] <- val
+                col_num <- col_num + 1
+            }
+        }
+        curr_row_num <- curr_row_num + 1
     }
     tab
 }

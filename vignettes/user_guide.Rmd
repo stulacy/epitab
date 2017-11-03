@@ -21,10 +21,11 @@ This vignette provides examples for building contingency tables using `epitab`.
 The first example is building contingency tables. The data set is a dummy one with standard demographic factors and the outcome of interested is whether the patient was treated or not.
 
 ```{r}
-treat <- data.frame(age=factor(sample(c("0-20", "21-60", ">61"), 100, replace=T), levels=c('0-20', '21-60', '>61')),
+treat <- data.frame(age=rnorm(100, 60, 20),
                     sex=factor(sample(c("M", "F"), 100, replace=T), levels=c('F', 'M')),
                     treated=factor(sample(c("Yes", "No"), 100, replace=T), levels=c('Yes', 'No')),
                     athome=factor(sample(c("Yes", "No"), 100, replace=T), levels=c('Yes', 'No')))
+treat$agebin <- cut(treat$age, breaks=c(0, 20, 40, 60, 80, 9999),labels=c("0-20", "20-40", "40-60", "60-80", "80+")) 
 ```
 
 Note that age has been discretised into factors, as is required for this package to work.
@@ -36,7 +37,7 @@ head(treat)
 The primary functionality provided by the package is similar to `stat.table` from `Epi`, but can handle multiple independent variables, for example below shows how age and sex vary with the treatment type. The formatting is slightly different to `stat.table` as well, with the counts and proportions displayed in the same cell, as is commonly used in publication ready tables. The independent variables are passed in named lists, with the name providing the label to use for the table and the value as the column name. The same formatting is used for the outcome variable. There is no limit to the number of independent variables allowed.
 
 ```{r}
-contingency_table(list("Age at diagnosis"="age",
+contingency_table(list("Age at diagnosis"="agebin",
                        "Sex"="sex"),
                   data=treat,
                   outcomes=list("Treated"='treated'))
@@ -50,11 +51,14 @@ The `functions` argument to `contingency_table` allows for the specification of 
 
 
 ```{r}
-contingency_table(list("Age at diagnosis"="age",
+contingency_table(list("Age at diagnosis"="agebin",
                        "Sex"="sex"),
                   data=treat, 
+                  frequency = F,
                   outcomes=list("Treated"='treated'),
-                  row_funcs=list("Odds ratio"=odds_ratio('treated'))
+                  row_funcs=list("Odds ratio"=odds_ratio('treated')),
+                  col_funcs=list("Mean age"=summary_mean("age"),
+                                 "Median age"=summary_median("age"))
                               )
 ```
 
@@ -63,7 +67,7 @@ Another useful model is to adjust for the other covariates when building the mod
 **NB: Note that the default output of these tables is designed to be viewed from a standard R console, which is wide enough to fit the entire table. For displaying contingency tables in formats where the width is limited, such as this html page or on a PDF document, it is recommended to use one of the approaches suggested below in *Publication ready tables*.**
 
 ```{r}
-contingency_table(list("Age at diagnosis"="age",
+contingency_table(list("Age at diagnosis"="agebin",
                        "Sex"="sex"),
                   data=treat, 
                   outcomes=list("Treated"='treated'),
@@ -73,7 +77,7 @@ contingency_table(list("Age at diagnosis"="age",
 Any number of regression models can be fitted, the table below displays both the univariate odds ratios and those resulting from a model that controls for the other variables. Note that since this dummy data set has been randomly generated with every variable independent of each other, there is minimal difference between these models.
 
 ```{r}
-contingency_table(list("Age at diagnosis"="age",
+contingency_table(list("Age at diagnosis"="agebin",
                        "Sex"="sex"),
                   data=treat, 
                   outcomes=list("Treated"='treated'),
@@ -95,7 +99,8 @@ The main functionality of `contingency_table` is to cross-tabulate independent v
 
 ```{r}
 prevsim$fiveyrsurv <- as.factor(as.numeric(prevsim$time > 365.25*5))
-prevsim$agegrp <- cut(prevsim$age, breaks=c(0, 60, 80, 150), labels=c('0-60', '60-80', '>80'))
+prevsim$agegrp <- cut(prevsim$age, breaks=c(0, 60, 80, 150), 
+                      labels=c('0-60', '60-80', '>80'))
 head(prevsim)
 ```
 

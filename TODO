@@ -1,7 +1,6 @@
 First release:
-  - Add column wise functions
+  - Add docs for column wise funcs
   - Update vignette to include an example of a custom model
-  - Column names as raw expressions
 
 Further features:
   - Allow a second stratification variable
