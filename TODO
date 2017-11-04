@@ -1,5 +1,5 @@
 First release:
-  - Add docs for column wise funcs
+  - Error handling, allow for no cross-tabulation functions to be provided
   - Update vignette to include an example of a custom model
 
 Further features:
