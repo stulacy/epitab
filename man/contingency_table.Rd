@@ -6,7 +6,7 @@
 \usage{
 contingency_table(independents, data, outcomes = NULL,
   crosstab_funcs = NULL, row_funcs = NULL, col_funcs = NULL,
-  frequency = TRUE)
+  marginal = TRUE)
 }
 \arguments{
 \item{independents}{A named list of independent variables, which will
@@ -39,7 +39,7 @@ Examples provided with the package included \code{summary_mean} and
 specificed continuous variable for each level of the outcome.
 See the vignette for further guidance.}
 
-\item{frequency}{Whether to include the counts of each level of \code{cat_vars}.}
+\item{marginal}{Whether to include the counts of each level of \code{cat_vars}, the marginal frequency.}
 }
 \value{
 An S3 object of class \code{contintab}, that provides the cell contents

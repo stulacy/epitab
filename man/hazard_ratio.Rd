@@ -4,8 +4,8 @@
 \alias{hazard_ratio}
 \title{Builds a function used to calculate hazard ratios.}
 \usage{
-hazard_ratio(outcome, adjusted = FALSE, relevel_baseline = TRUE,
-  digits = 2)
+hazard_ratio(outcome, adjusted = FALSE, relevel_baseline = FALSE,
+  digits = 2, ci = TRUE)
 }
 \arguments{
 \item{outcome}{The dependent variable, specifies a \code{Surv} object
@@ -17,6 +17,8 @@ as a string.}
 \item{relevel_baseline}{Whether to use the largest level as the baseline.}
 
 \item{digits}{The number of digits to display.}
+
+\item{ci}{Whether to include a confidence interval in parantheses after the estimate.}
 }
 \value{
 A function that is used to calculate hazard ratios.

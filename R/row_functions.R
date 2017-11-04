@@ -12,15 +12,16 @@
 #'   \code{cat_vars} argument to \code{contingency_table}.
 #' @param relevel_baseline Whether to use the largest level as the baseline.
 #' @param digits The number of digits to display.
+#' @param ci Whether to include a confidence interval in parantheses after the estimate.
 #'
 #' @return A function that is used to calculate odds ratios.
 #'
 #' @export
-odds_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2) {
+odds_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2, ci=TRUE) {
 
     build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
         stats::glm(formula, data, family=stats::binomial())
-    }, digits=digits)
+    }, digits=digits, ci=ci)
 }
 
 #' Builds a function used to calculate hazard ratios.
@@ -39,15 +40,15 @@ odds_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2
 #' @return A function that is used to calculate hazard ratios.
 #'
 #' @export
-hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2) {
+hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2, ci=TRUE) {
 
     build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
         survival::coxph(formula, data)
-    }, digits=digits)
+    }, digits=digits, ci=ci)
 }
 
 
-build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_coefs, digits=2) {
+build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_coefs, digits=2, ci=TRUE) {
 
     function(var, all_vars, data) {
         # Used when no covariates are specified, thereby indicating
@@ -86,22 +87,27 @@ build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_
         estimates[modelled_levels] <- sapply(estimates[modelled_levels], function(x) sprintf("%.*f", digits, x))
 
         # Now get CIs
-        raw_ci <- suppressMessages(exp(stats::confint(mod)))
-        # Firstly get the (p-1) CIs
-        ci <- raw_ci[modelled_levels, ]
-        # If have a single modelled level then a vector gets returned rather than a matrix
-        if (is.null(dim(ci))) {
-            dim(ci) <- c(1, 2)
-            row.names(ci) <- modelled_levels
-        }
-        ci_str <- apply(ci, 1, function(row) {
-            sprintf("(%.*f - %.*f)", digits, row[1], digits, row[2])
-        })
-        # Add empty val for baseline
-        ci_str <- c(ci_str, "")
-        names(ci_str)[length(ci_str)] <- baseline_label
+        if (ci) {
+            raw_ci <- suppressMessages(exp(stats::confint(mod)))
+            # Firstly get the (p-1) CIs
+            ci <- raw_ci[modelled_levels, ]
+            # If have a single modelled level then a vector gets returned rather than a matrix
+            if (is.null(dim(ci))) {
+                dim(ci) <- c(1, 2)
+                row.names(ci) <- modelled_levels
+            }
+            ci_str <- apply(ci, 1, function(row) {
+                sprintf("(%.*f - %.*f)", digits, row[1], digits, row[2])
+            })
+            # Add empty val for baseline
+            ci_str <- c(ci_str, "")
+            names(ci_str)[length(ci_str)] <- baseline_label
 
-        # And combine into formatted string
-        paste(estimates, ci_str[coef_labels])
+            # And combine into formatted string
+            output <- paste(estimates, ci_str[coef_labels])
+        } else {
+            output <- estimates
+        }
+        output
     }
 }
