@@ -9,7 +9,7 @@
 #'
 #' @importFrom magrittr %>%
 #' @export
-neat_table <- function(table, format=c("html", "pdf"), ...) {
+neat_table <- function(table, format=c("html", "latex"), ...) {
     format <- match.arg(format)
     mat <- table$mat
     content <- mat[(table$num_headers+1):nrow(mat), ]
