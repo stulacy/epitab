@@ -1,0 +1,41 @@
+---
+title: "Test HTML"
+output: html_document
+---
+
+```{r}
+library(epitab)
+library(dplyr)
+```
+
+```{r}
+treat <- data.frame(age=abs(rnorm(100, 60, 20)),
+                    sex=factor(sample(c("M", "F"), 100, replace=T)),
+                    variant=factor(sample(c("A", "B"), 100, replace=T)),
+                    treated=factor(sample(c("Yes", "No"), 100, replace=T)))
+treat$agebin <- cut(treat$age, breaks=c(0, 40, 60, 80, 9999),labels=c("0-40", "41-60", "61-80", "80+")) 
+```
+
+
+```{r}
+contingency_table(independents=list("Age"="agebin",
+                                    "Sex"="sex"),
+                  outcomes=list("Treated"='treated'),
+                  crosstab_funcs=list(freq()),
+                  row_funcs=list("OR"=odds_ratio('treated')),
+                  data=treat) %>%
+              neat_table() %>%
+              kableExtra::kable_styling(bootstrap_options=c("striped", "hover"), full_width=TRUE)
+```
+
+```{r}
+knitr::kable(contingency_table(list("Age"="agebin",
+                                    "Sex"="sex"),
+                               outcomes=list("Treated"='treated'),
+                               crosstab_funcs=list(freq()),
+                               row_funcs=list("OR"=odds_ratio('treated'),
+                                              "Adj OR"=odds_ratio('treated', adjusted=TRUE)),
+                               data=treat)$mat,
+             "html") %>%
+        kableExtra::kable_styling("striped", full_width=FALSE)
+```

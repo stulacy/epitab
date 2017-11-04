@@ -81,7 +81,7 @@ contingency_table <- function(independents, data, outcomes=NULL,
     }
 
     if (xor(is.null(crosstab_funcs), is.null(outcomes))) {
-        stop("if one of crosstab_funcs or outcomes is provided then the other must be as well.")
+        stop("if one of crosstab_funcs or outcomes is provided, then the other must be as well.")
     }
 
     raw_content <- lapply(outcomes, function(outcome_val) {
