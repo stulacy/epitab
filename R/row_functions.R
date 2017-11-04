@@ -16,7 +16,7 @@
 #' @return A function that is used to calculate odds ratios.
 #'
 #' @export
-odds_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE, digits=2) {
+odds_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2) {
 
     build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
         stats::glm(formula, data, family=stats::binomial())
@@ -39,7 +39,7 @@ odds_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE, digits=2)
 #' @return A function that is used to calculate hazard ratios.
 #'
 #' @export
-hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=TRUE, digits=2) {
+hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2) {
 
     build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
         survival::coxph(formula, data)
