@@ -33,7 +33,7 @@
 #'   \code{summary_median}, which calculate the mean and median value of a
 #'   specificed continuous variable for each level of the outcome.
 #'   See the vignette for further guidance.
-#' @param frequency Whether to include the counts of each level of \code{cat_vars}.
+#' @param marginal Whether to include the counts of each level of \code{cat_vars}, the marginal frequency.
 #'
 #' @return An S3 object of class \code{contintab}, that provides the cell contents
 #'   as a matrix of strings.
@@ -72,7 +72,7 @@ contingency_table <- function(independents, data, outcomes=NULL,
                               crosstab_funcs=NULL,
                               row_funcs=NULL,
                               col_funcs=NULL,
-                              frequency=TRUE) {
+                              marginal=TRUE) {
 
     for (cat in independents) {
         if (!is.factor(data[[cat]]) & typeof(data[[cat]]) != 'character') {
@@ -133,7 +133,7 @@ contingency_table <- function(independents, data, outcomes=NULL,
                     outcomes=outcomes,
                     cat_levels=lapply(independents, function(var) levels(data[[var]])),
                     outcome_levels=outcome_levels,
-                    frequency=frequency,
+                    frequency=marginal,
                     has_outcome=!is.null(outcomes),
                     num_obs=nrow(data),
                     num_headers=1 + as.numeric(!is.null(outcomes)))
