@@ -4,5 +4,3 @@ First release:
 
 Further features:
   - Allow a second stratification variable
-  - Add summary statistics, such as chisq
-  - Printing to excel function (text only)

@@ -2,6 +2,7 @@
 
 S3method(print,contintab)
 export(contingency_table)
+export(freq)
 export(hazard_ratio)
 export(neat_table)
 export(odds_ratio)

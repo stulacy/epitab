@@ -17,13 +17,23 @@
 #'   Must correspond to factor or character variables.
 #' @param data The data set that contains the columns specified in
 #'   \code{cat_vars} and \code{outcome}.
-#' @param frequency Whether to include the counts of each level of \code{cat_vars}.
+#' @param crosstab_funcs A list of functions that are applied to every cross-tabulation
+#'   permutation of \code{independents} and \code{outcomes}. The most common
+#'   function, the frequency, is provided with the package in function \code{freq}.
+#'   See the vignette for further guidance.
 #' @param row_funcs A list of functions that are applied row-wise to the table,
 #'   one independent variable at a time, providing a value for each level of
 #'   the factors specified in \code{independents}.
-#'   See the vignette for a description of how to specify this.
 #'   Two functions: \code{odds_ratio} and \code{hazard_ratio} come
 #'   provided with the package.
+#'   See the vignette for further guidance.
+#' @param col_funcs A list of functions that are applied column-wise to the table,
+#'   to every outcome separate from the independent variables.
+#'   Examples provided with the package included \code{summary_mean} and
+#'   \code{summary_median}, which calculate the mean and median value of a
+#'   specificed continuous variable for each level of the outcome.
+#'   See the vignette for further guidance.
+#' @param frequency Whether to include the counts of each level of \code{cat_vars}.
 #'
 #' @return An S3 object of class \code{contintab}, that provides the cell contents
 #'   as a matrix of strings.
@@ -59,12 +69,10 @@
 #'
 #' @export
 contingency_table <- function(independents, data, outcomes=NULL,
+                              crosstab_funcs=NULL,
                               row_funcs=NULL,
                               col_funcs=NULL,
                               frequency=TRUE) {
-    if (length(outcomes) > 2) {
-        stop("Having more than 2 outcomes isn't possible.")
-    }
 
     for (cat in independents) {
         if (!is.factor(data[[cat]]) & typeof(data[[cat]]) != 'character') {
@@ -74,21 +82,23 @@ contingency_table <- function(independents, data, outcomes=NULL,
 
     raw_content <- lapply(outcomes, function(outcome_val) {
         # Calculate cross-reference freq overall
-        overall <- table(data[[outcome_val]])
-        overall_props <- overall / nrow(data)
-
-        content <- lapply(independents, function(var) {
-            # Calculate table frequencies overall
-            counts <- table(data[[var]])
-            # Calculate 2x2 table frequencies with proportions
-            cross_counts <- table(data[[var]], data[[outcome_val]])
-            cross_props <- apply(cross_counts, 2, "/", counts)
-
-            list(cross_counts=cross_counts,
-                 cross_proportion=cross_props)
+        overall_crosstab <- lapply(levels(data[[outcome_val]]), function(lev) {
+            sapply(crosstab_funcs, function(func) {
+                func(lev, outcome_val, data)
+            })
         })
-        list(overall=overall, overall_props=overall_props,
-             dependent_freqs=content)
+
+        crosstabs <- lapply(independents, function(ind_var) {
+            lapply(levels(data[[ind_var]]), function(ind_lev) {
+                # TODO subset data here, more computationally cheap
+                lapply(levels(data[[outcome_val]]), function(out_lev) {
+                    sapply(crosstab_funcs, function(func) {
+                        func(out_lev, outcome_val, data, ind_lev, ind_var)
+                    })
+                })
+            })
+        })
+        list(overall_crosstab=overall_crosstab, independent_crosstab=crosstabs)
     })
 
     cat_counts <- lapply(independents, function(var) {
@@ -117,6 +127,7 @@ contingency_table <- function(independents, data, outcomes=NULL,
                     row_func_vals=row_func_vals,
                     col_func_labels=names(col_funcs),
                     col_func_vals=col_func_vals,
+                    crosstab_funcs=crosstab_funcs,
                     cat_vars=independents,
                     cat_counts=cat_counts,
                     outcomes=outcomes,
@@ -152,7 +163,10 @@ convert_list_to_matrix <- function(x) {
     col_funcs <- x$col_func_labels
     ncolfuncs <- if (is.null(col_funcs)) 0 else length(col_funcs)
 
-    num_cross_levels <- sum(sapply(x$outcome_levels, length))
+    crosstab_funcs <- x$crosstab_funcs
+    ncrosstabfuncs <- if(is.null(crosstab_funcs)) 0 else length(crosstab_funcs)
+
+    num_cross_levels <- sum(sapply(x$outcome_levels, length)) * ncrosstabfuncs
 
     # Setup empty matrix to hold the table
     ncols <- 2 + as.numeric(x$frequency) + num_cross_levels + nrowfuncs
@@ -185,7 +199,7 @@ convert_list_to_matrix <- function(x) {
         }
     }
 
-    # First content row is the outcome variable levels.
+    # Outcome variable labels
     col_num <- 3 + as.numeric(x$frequency)
     for (outcome in x$outcome_levels) {
         for (var in outcome) {
@@ -207,9 +221,10 @@ convert_list_to_matrix <- function(x) {
             col_num <- 3
         }
 
+        # Overall cross-tabulation values
         for (outcome in x$content) {
-            for (i in seq_along(outcome$overall)) {
-                tab[curr_row_num, col_num] <- paste0(outcome$overall[i], " (", round(outcome$overall_props[i], 2), ")")
+            for (val in outcome$overall_crosstab) {
+                tab[curr_row_num, col_num] <- val
                 col_num <- col_num + 1
             }
         }
@@ -240,16 +255,16 @@ convert_list_to_matrix <- function(x) {
         # Display cross-tab
         for (i in seq_along(x$cat_levels[[var]])) {
             col_num <- starting_crosstab_col
-            for (outcome in names(x$content)) {
-            varcont <- x$content[[outcome]]$dependent_freqs[[var]]
-                for (j in seq_along(x$outcome_levels[[outcome]])) { # add count per level of cross-ref var (with proportion in brackets)
-                    tab[var_start_row+i-1, col_num] <- paste0(varcont$cross_counts[i, j], " (", round(varcont$cross_proportion[i, j], 2), ")")
+            for (outcome in x$content) {
+                varcont <- outcome$independent_crosstab[[var]][[i]]
+                for (j in seq_along(varcont)) {
+                    tab[var_start_row+i-1, col_num] <- varcont[[j]]
                     col_num <- col_num + 1
                 }
             }
         }
 
-        # Add function vars
+        # Add row function values
         func_starting_col <- starting_crosstab_col + num_cross_levels
         for (i in seq_along(x$cat_levels[[var]])) {
             for (j in seq_along(row_funcs)) {
