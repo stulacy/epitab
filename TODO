@@ -1,6 +1,4 @@
 First release:
-  - Get kableExtra::kable_styling() option working with neat_table
-  - Test works with PDF
   - Add tips to exporting to Office
   - Update vignette to include an example of a custom model
 
