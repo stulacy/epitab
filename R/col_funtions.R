@@ -15,7 +15,7 @@ build_continuous_summary <- function(func, var, digits=2) {
 #' for each outcome level.
 #' @export
 summary_mean <- function(var) {
-    build_continuous_summary(stats::mean, var)
+    build_continuous_summary(mean, var)
 }
 
 #' Calculates the median of a specified continuous variable

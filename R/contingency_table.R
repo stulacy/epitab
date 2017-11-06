@@ -53,16 +53,19 @@
 #'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
+#'                    crosstab_funcs=list(freq()),
 #'                    outcomes=list('Treated'='treated'))
 #'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
 #'                    outcomes=list('Treated'='treated'),
+#'                    crosstab_funcs=list(freq()),
 #'                    row_funcs=list("Odds ratio"=odds_ratio('treated')))
 #'
 #'  contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
 #'                    treat_df,
 #'                    outcomes=list('Treated'='treated'),
+#'                    crosstab_funcs=list(freq()),
 #'                    row_funcs=list("Odds ratio"=odds_ratio('treated'),
 #'                                "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE)))
 #'
