@@ -7,7 +7,6 @@
 #'
 #' @return A \code{kable} object.
 #'
-#' @importFrom magrittr %>%
 #' @export
 neat_table <- function(table, format=c("html", "latex"), ...) {
     format <- match.arg(format)
@@ -39,7 +38,7 @@ neat_table <- function(table, format=c("html", "latex"), ...) {
         labels <- c(" ", labels)
     }
     names(indices) <- labels
-    obj <- obj %>% kableExtra::group_rows(index=indices)
+    obj <- kableExtra::group_rows(obj, index=indices)
 
     if (table$num_headers > 1) {
         nrowfuncs <- length(table$row_func_labels)
@@ -50,7 +49,8 @@ neat_table <- function(table, format=c("html", "latex"), ...) {
                     sapply(table$outcome_levels, length),
                     rep(1, nrowfuncs))
         names(widths) <- cnames
-        obj <- obj %>% kableExtra::kable_styling(full_width=TRUE) %>% kableExtra::add_header_above(widths)
+        obj <- kableExtra::kable_styling(obj, full_width=TRUE)
+        obj <- kableExtra::add_header_above(obj, widths)
     }
     obj
 }

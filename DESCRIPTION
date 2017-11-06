@@ -11,12 +11,10 @@ Description: Builds contingency tables that cross-tabulate multiple
 License: GPL-2
 Imports: kableExtra,
          knitr,
-         magrittr,
          survival
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Suggests: dplyr,
-          rmarkdown,
-          rprev
+          rmarkdown
 VignetteBuilder: knitr
