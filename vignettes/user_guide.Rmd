@@ -252,7 +252,7 @@ contingency_table(independents=list("Age"="agebin",
                                  "Adj OR"=odds_ratio('treated', adjusted=TRUE)),
                   col_funcs=list("Mean age"=summary_mean("age")),
                   data=treat) %>%
-              neat_table('latex', booktabs=TRUE) %>%
+              neat_table('latex', booktabs=TRUE) 
 ```
 
 The above call will display the table below using the default Rmarkdown template.
