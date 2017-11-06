@@ -8,9 +8,7 @@
 freq <- function(proportion=c("percentage", "ratio", "none"), digits=2) {
     proportion <- match.arg(proportion)
 
-    function(out_level, out_var, data, ind_level=NULL, ind_var=NULL) {
-        if (!is.null(ind_level) & !is.null(ind_var))
-            data <- data[data[[ind_var]]==ind_level, ]
+    function(out_level, out_var, data) {
 
         level_count <- sum(data[[out_var]] == out_level)
 

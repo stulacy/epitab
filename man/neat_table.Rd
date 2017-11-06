@@ -4,7 +4,7 @@
 \alias{neat_table}
 \title{Displays a neatly formatted table.}
 \usage{
-neat_table(table, format = c("html", "pdf"), ...)
+neat_table(table, format = c("html", "latex"), ...)
 }
 \arguments{
 \item{table}{A \code{contintab} object.}

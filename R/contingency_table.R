@@ -94,10 +94,10 @@ contingency_table <- function(independents, data, outcomes=NULL,
 
         crosstabs <- lapply(independents, function(ind_var) {
             lapply(levels(data[[ind_var]]), function(ind_lev) {
-                # TODO subset data here, more computationally cheap
+                sub_data <- data[data[[ind_var]] == ind_lev, ]
                 lapply(levels(data[[outcome_val]]), function(out_lev) {
                     sapply(crosstab_funcs, function(func) {
-                        func(out_lev, outcome_val, data, ind_lev, ind_var)
+                        func(out_lev, outcome_val, sub_data)
                     })
                 })
             })
@@ -115,7 +115,9 @@ contingency_table <- function(independents, data, outcomes=NULL,
 
     col_func_vals <- lapply(col_funcs, function(func) {
         lapply(outcomes, function(out) {
-            func(out, data)
+            lapply(levels(data[[out]]), function(lev) {
+                func(lev, out, data)
+            })
         })
     })
 

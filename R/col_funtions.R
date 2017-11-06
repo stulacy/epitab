@@ -1,10 +1,7 @@
 build_continuous_summary <- function(func, var, digits=2) {
-    function(outcome, data) {
-        sapply(levels(data[[outcome]]), function(out) {
-            sub_data <- data[data[[outcome]]==out, ]
-            round(func(sub_data[, var]), digits)
-        })
-
+    function(outlevel, outcome, data) {
+        sub_data <- data[data[[outcome]] == outlevel, ]
+        round(func(sub_data[, var]), digits)
     }
 }
 
@@ -18,7 +15,7 @@ build_continuous_summary <- function(func, var, digits=2) {
 #' for each outcome level.
 #' @export
 summary_mean <- function(var) {
-    build_continuous_summary(mean, var)
+    build_continuous_summary(stats::mean, var)
 }
 
 #' Calculates the median of a specified continuous variable
@@ -29,5 +26,5 @@ summary_mean <- function(var) {
 #' for each outcome level.
 #' @export
 summary_median <- function(var) {
-    build_continuous_summary(median, var)
+    build_continuous_summary(stats::median, var)
 }
