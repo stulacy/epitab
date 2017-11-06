@@ -177,7 +177,7 @@ contingency_table(independents=list("Age"="agebin",
 
 The default `print` method of these contingency tables is designed for a standard wide R console, where the entire table fits width-wise. However, for situations where a table is being produced for distribution or publication of any type, greater attention to detail and appearance is required. `epitab` provides several options for exporting clean-looking tables.
 
-### `neat_table` to HTMl and PDF
+### `neat_table` to HTML and PDF
 
 The `neat_table` function provided in `epitab` builds a cleanly formatted table for output to HMTL or LaTeX, using `knitr::kable` and the `kableExtra` package. The output of `neat_table` is still a `kable` object and so can be passed to `kableExtra::kable_styling()`, allowing for the specification of various cosmetic options, such as striped rows and highlighting on mouse hover. See the help files for both `neat_table` and `kableExtra::kable_styling` for further details.
 
@@ -210,12 +210,13 @@ contingency_table(independents=list("Age"="agebin",
                                  "Adj OR"=odds_ratio('treated', adjusted=TRUE)),
                   col_funcs=list("Mean age"=summary_mean("age")),
                   data=treat) %>%
-              neat_table('latex', booktabs=TRUE) 
+              neat_table('latex', booktabs=TRUE) %>%
+              kableExtra::kable_styling(font_size=8)
 ```
 
 The above call will display the table below using the default Rmarkdown template.
 
-![`neat_table()` LaTeX example](neat_latex_resize.png)
+![`neat_table()` LaTeX example](neat_latex.png)
 
 ### `kable`
 
