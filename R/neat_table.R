@@ -32,8 +32,12 @@ neat_table <- function(table, format=c("html", "latex"), ...) {
     obj <- knitr::kable(content, col.names=header, format=format, ...)
 
     # Group categorical variables together
-    indices <- c(1, sapply(table$cat_levels, length))
-    labels <- c(" ", names(table$cat_levels))
+    indices <- sapply(table$cat_levels, length)
+    labels <- names(table$cat_levels)
+    if (!is.null(table$crosstab_funcs)) {
+        indices <- c(1, indices)
+        labels <- c(" ", labels)
+    }
     names(indices) <- labels
     obj <- obj %>% kableExtra::group_rows(index=indices)
 
