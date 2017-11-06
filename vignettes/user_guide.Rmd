@@ -25,7 +25,7 @@ set.seed(17)
 treat <- data.frame(age=abs(rnorm(100, 60, 20)),
                     sex=factor(sample(c("M", "F"), 100, replace=T)),
                     variant=factor(sample(c("A", "B"), 100, replace=T)),
-                    treated=factor(sample(c("Yes", "No"), 100, replace=T)))
+                    treated=factor(sample(c("Yes", "No"), 100, replace=T), levels=c("Yes", "No")))
 treat$agebin <- cut(treat$age, breaks=c(0, 40, 60, 80, 9999),labels=c("0-40", "41-60", "61-80", "80+")) 
 ```
 
@@ -259,9 +259,29 @@ The above call will display the table below using the default Rmarkdown template
 
 ![`neat_table()` LaTeX example](neat_latex.png)
 
-### Word / Excel
+### Word
 
-TODO Test this
+As Word is a proprietary format, it is a bit trickier to insert tables. The easiest way involves several steps:
+
+  1. Save the raw table as a CSV
+  2. Open the CSV in Excel and copy the table
+  3. Right click in a Word document and select *Paste Options -> Use Destination Styles*
+  4. Adjust table appearance using standard *Table Tools | Design* options
+  
+The code snippet below shows how to save the raw table to CSV.
+
+```{r, eval=F}
+tab <- contingency_table(independents=list("Age"="agebin",
+                                           "Sex"="sex"),
+                         outcomes=list("Treated"="treated"),
+                         crosstab_funcs=list(freq()),
+                         col_funcs=list("Mean age"=summary_mean("age"),
+                                        "Median age"=summary_median("age")),
+                         row_funcs=list("OR"=odds_ratio('treated', relevel_baseline=TRUE),
+                                        "Adj OR"=odds_ratio('treated', adjusted=TRUE, relevel_baseline=TRUE)),
+                         data=treat)
+write.table(tab$mat, "mytable.csv", row.names=FALSE, col.names=FALSE, sep=',')
+```
 
 ## Custom functions
 
