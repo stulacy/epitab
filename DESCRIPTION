@@ -1,6 +1,6 @@
 Package: epitab
 Type: Package
-Title: Provides contingency tables for Epidemiology
+Title: Contingency tables for Epidemiology
 Version: 0.2.0
 Author: Stuart Lacy
 Maintainer: Stuart Lacy <stuart.lacy@york.ac.uk>
