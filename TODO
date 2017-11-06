@@ -1,7 +1,6 @@
 First release:
   - Add tips to exporting to Office
   - Add screenshot of markdown and latex full table
-  - Update vignette to include an example of a custom model
 
 Further features:
   - Allow a second stratification variable

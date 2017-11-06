@@ -256,11 +256,107 @@ contingency_table(independents=list("Age"="agebin",
 
 TODO Test this
 
-## Adding custom models
+## Custom functions
 
-For the advanced user, any regression model can be provided to the `model` argument, and not just the specified options (`odds_ratio`, `adj_odds_ratio`, `hazard_ratio`, `adj_hazard_ratio`). These must be specified as functions with two parameters: 
+In the above examples, the summary functions used to build up the table in `crosstab_funcs`, `row_funcs`, and `col_funcs` have been specified as functions provided by `epitab`. However, for greater flexibility, any correctly-specified function can be passed to provide statistics of interest. This section details the appropriate form for each of these 3 types..
 
-  - `cat_var`: The independent variable of interest, expressed as a string
-  - `data`: The data frame
+### Cross-tabulated
+
+The functions passed in to `crosstab_functions` are run for each combination of outcome and independent variable level.
+
+Arguments:
+
+  - `outcome_level`: A string providing the current outcome level.
+  - `outcome_name`: A string providing the current outcome variable.
+  - `data`: A subset of the full data, to comprise individuals with the current independent variable level
+  
+The function must return a vector of length one, and that can be coerced to a character.
+
+The example function below calculates the proportion of each outcome per independent variable level, rather than also displaying the frequency as `freq` does.
+
+```{r}
+proportion <- function(outcome_level, outcome_name, data) {
+    outcome_count <- sum(data[[outcome_name]] == outcome_level)
+    proportion <- outcome_count / nrow(data)
+    round(proportion, 2)
+}
+```
+
+```{r}
+contingency_table(independents=list("Age"="agebin",
+                                    "Sex"="sex"),
+                  outcomes=list("Treated"="treated"),
+                  crosstab_funcs=list(proportion),
+                  data=treat)
+```
+
+### Row-wise
+
+The row-wise functions that are supplied with `epitab` are `odds_ratio` and `hazard_ratio`, and are used to estimate summary measures for the independent variables outside of the contingency table. This can be useful for providing a summary statistic that is not necessarily related to the outcome variables. This example will describe the case where there is a continuous outcome and we wish to run a linear regression on it with the independent variables. For this demonstration, the continuous outcome is age - which is not a particularly useful thing to do, especially when one of the independent variables is age group, but it will serve as an example. These functions must be parameterised as follows:
+
+Args:
+
+  - `var`: The current independent variable, as string.
+  - `all_vars`: All independent variables as passed into `independents`. Character vector.
+  - `data`: The data set passed into `data`.
 
 The function must return a character vector (or at least something that can be coerced to character) with the length of the number of levels of `cat_var`.
+
+```{r}
+lr <- function(var, all_vars, data) {
+    levs <- levels(data[[var]])
+    form <- as.formula(paste('age ~', var))
+    mod <- lm(form, data)
+    coefs <- c(coef(mod), 1)  # Add baseline as 1
+    # coefficients are named with <variable><level>
+    labels <- paste0(var, levs)
+    # set baseline name in coefficients vector
+    names(coefs)[length(coefs)] <- labels[1]
+    coefs[labels]
+}
+```
+
+```{r}
+contingency_table(list("Age"="agebin",
+                       "Sex"="sex"),
+                  outcomes=list("Treated"='treated'),
+                  data=treat, 
+                  crosstab_funcs=list(freq()),
+                  row_funcs=list("Regression on age"=lr),
+                 )
+```
+
+### Column-wise
+
+Column-wise functions are used to investigate relationships between the outcome variables that aren't necessarily associated with the categorical independent variables. The functions provided with `epitab` are `summary_mean` and `summary_median`, and provide a typical use-case of summarising a continuous variable for each level of the outcome.
+
+Args:
+
+  - `outlevel`: The current level of the outcome, as a character vector.
+  - `outcome`: The current outcome, as a character vector.
+  - `data`: The full data set that was passed to `contingency_table`
+
+Returns:
+
+The function must return a single value that can be coerced to a string.
+
+The example function below extends `summary_mean` by adding the standard deviation in parantheses. It is hardcoded to work for a single continuous variable, age.
+
+```{r}
+meanage_sd <- function(outlevel, outcome, data) {
+    sub_data <- data[data[[outcome]] == outlevel, ]
+    mean <- round(mean(sub_data[['age']]), 2)
+    sd <- round(sd(sub_data[['age']]), 2)
+    paste0(mean, " (", sd, ")")
+}
+```
+
+```{r}
+contingency_table(independents=list("Age"="agebin",
+                                    "Sex"="sex"),
+                  outcomes=list("Treated"="treated"),
+                  crosstab_funcs=list(freq()),
+                  col_funcs=list("Mean age"=summary_mean("age"),
+                                 "Mean age (sd)"=meanage_sd),
+                  data=treat)
+```
