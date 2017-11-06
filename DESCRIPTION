@@ -11,6 +11,7 @@ Description: Builds contingency tables that cross-tabulate multiple
 License: GPL-2
 Imports: kableExtra,
          knitr,
+         MASS,
          survival
 Encoding: UTF-8
 LazyData: true
