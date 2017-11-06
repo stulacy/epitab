@@ -9,7 +9,7 @@ hazard_ratio(outcome, adjusted = FALSE, relevel_baseline = FALSE,
 }
 \arguments{
 \item{outcome}{The dependent variable, specifies a \code{Surv} object
-as a string.}
+as a string. For example, \code{hazard_ratio("Surv(time, status)")}.}
 
 \item{adjusted}{Whether to adjust for the other covariates, specified by
 \code{cat_vars} argument to \code{contingency_table}.}

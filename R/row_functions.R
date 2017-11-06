@@ -35,7 +35,7 @@ odds_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2
 #'
 #' @inheritParams odds_ratio
 #' @param outcome The dependent variable, specifies a \code{Surv} object
-#'   as a string.
+#'   as a string. For example, \code{hazard_ratio("Surv(time, status)")}.
 #'
 #' @return A function that is used to calculate hazard ratios.
 #'
