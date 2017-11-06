@@ -1,3 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 R/testdata.R
+^TODO$
+vignettes/user_guide.R

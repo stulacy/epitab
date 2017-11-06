@@ -21,6 +21,7 @@ library(dplyr)
 To demonstrate the package, a dummy data set representing an observational study of a disease will be used. The disease mostly affects elderly people, and not everyone is provided treatment. The disease itself comes in two variants *A* and *B*.
 
 ```{r}
+set.seed(17)
 treat <- data.frame(age=abs(rnorm(100, 60, 20)),
                     sex=factor(sample(c("M", "F"), 100, replace=T)),
                     variant=factor(sample(c("A", "B"), 100, replace=T)),
@@ -203,8 +204,6 @@ The default `print` method of these contingency tables is designed for a standar
 
 The `neat_table` function provided in `epitab` builds a neatly formatted table for output to HMTL or LaTeX, using `knitr::kable` and the `kableExtra` package. The output of `neat_table` is still a `kable` object and so can be passed to `kableExtra::kable_styling()`, allowing for the specification of various cosmetic options, such as striped rows and highlighting on mouse hover. See the help files for both `neat_table` and `kableExtra::kable_styling` for further details.
 
-**NB: due to the vignette markdown theme, these styling changes won't appear in this vignette HTML, but they will appear in your own markdown documents.**
-
 ```{r}
 contingency_table(independents=list("Age"="agebin",
                                     "Sex"="sex"),
@@ -217,6 +216,10 @@ contingency_table(independents=list("Age"="agebin",
               neat_table() %>%
               kableExtra::kable_styling(bootstrap_options=c("striped", "hover"), full_width=FALSE)
 ```
+
+Due to the vignette markdown theme, these styling changes won't appear in this vignette HTML, but they will appear in your own markdown documents. The image below shows how the table is displayed in the default Rmarkdown template using the same code as above.
+
+![`neat_table()` HTML example](neat_html.png)
 
 ### `kable`
 
@@ -251,6 +254,10 @@ contingency_table(independents=list("Age"="agebin",
                   data=treat) %>%
               neat_table('latex', booktabs=TRUE) %>%
 ```
+
+The above call will display the table below using the default Rmarkdown template.
+
+![`neat_table()` LaTeX example](neat_latex.png)
 
 ### Word / Excel
 
