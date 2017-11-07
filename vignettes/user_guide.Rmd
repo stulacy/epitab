@@ -14,11 +14,11 @@ library(epitab)
 library(dplyr)
 ```
 
-`epitab` provides functionality for building contingency tables with options for other summary measures built in. It was initially designed for use in epidemiology, as an extension to the `Epi::stat.table` function, however, by using a generalised framework of a descriptive table, it is flexible enough to be used in a variety of disciplines and situations. This vignette provides an overview of the types of tables that can be built using `epitab`.
+`epitab` provides functionality for building contingency tables with a variety of additional configurations. It was initially designed for use in epidemiology, as an extension to the `Epi::stat.table` function. However, by identifying core components of a descriptive table, it is flexible enough to be used in a variety of disciplines and situations. This vignette provides an overview of the types of tables that can be built using `epitab`.
 
 ## Data
 
-For demonstration purposes, a simulated data set representing an observational study of a disease will be used. The disease mostly affects elderly people, and not every patient receives firstline treatment. The disease itself comes in two variants: *A* and *B*.
+For demonstration purposes, a simulated data set representing an observational study of a disease will be used. This fictitious disease primarily affects elderly people, and not every patient receives first-line treatment. The disease itself comes in two variants: *A* and *B*.
 
 ```{r}
 set.seed(17)
@@ -37,9 +37,9 @@ treat %>%
 
 ## Contingency tables
 
-Contingency tables are useful when running an initial exploratory analysis of a data set, and highlight relationships between one or more *independent* variables and (typically one) outcome. The code example below shows how to build a basic contingency table to see how treatment varies by age and sex.
+Contingency tables are useful tools for exploratory analysis of a data set, and highlight relationships between one or more *independent* variables and (typically one) *outcome* of interest. The example code below shows how to build a basic contingency table to view how treatment varies by age group and sex.
 
-Both the *independent* and *outcome* variables are passed in through lists, with the name providing the column or row label. The column names **must** be quoted strings, allowing for these tables to be used in automated scripts. The `crosstab_funcs` argument specifies what summary measures should be calculated for each independent variable / outcome combination. The `freq` function calculates the frequency of each of these cells, and (optionally) provides the proportion in parantheses.
+Both the *independent* and *outcome* variables are passed in through lists, where the column names **must** be quoted strings (thereby allowing for these tables to be used in automated scripts). The list entry labels are used to provide the column and row labels. The `crosstab_funcs` argument specifies what summary measures should be calculated for each covariate / outcome combination. The `freq` function calculates the frequency of each of these cells, and (optionally) provides the proportion in parentheses.
 
 ```{r}
 contingency_table(independents=list("Age"="agebin",
@@ -49,7 +49,7 @@ contingency_table(independents=list("Age"="agebin",
                   data=treat)
 ```
 
-Using this standard contingency table as a starting point, there are are lots of ways to customise the table. The presence of the overall frequency column is controlled by the `marginal` argument. There are also options to `freq` that specify the formatting of the cross-tabulated frequencies. See `?freq` for more details.
+Using this standard contingency table as a starting point, there are several ways to customise the table. The presence of the overall frequency column is controlled by the `marginal` argument. There are also options to `freq` that specify the formatting of the cross-tabulated frequencies (see `?freq` for more details).
 
 ```{r}
 contingency_table(independents=list("Age"="agebin",
@@ -60,7 +60,7 @@ contingency_table(independents=list("Age"="agebin",
                   data=treat)
 ```
 
-Note that multiple outputs can be included, although these are still 2-way contingency tables between all the covariates and the outcomes independently. It is not currently possible to produce a 3-way contingency table.
+Note that multiple outcomes can be selected, although it still results in a 2-way contingency table between all the covariates and the outcomes independently. It is not currently possible to produce a 3-way contingency table.
 
 ```{r}
 contingency_table(independents=list("Age"="agebin",
@@ -70,15 +70,15 @@ contingency_table(independents=list("Age"="agebin",
                   data=treat)
 ```
 
-## Adding additional information
+## Adding supplementary information
 
-Supplementary data and statistics can be added to these standard contingency tables in two ways. *column-wise measures* act on each outcome in turn, without regard to the covariates, while *row-wise measures* are those that are calculated for every level of every independent variable.
+Additional statistics can be added to these contingency tables in two ways. *Column-wise measures* act on each outcome in turn without regard to the covariates, while *row-wise measures* are those that are calculated for every level of each independent variable.
 
 ### Column-wise measures
 
-It is often the case that in addition to the categorical variables included in the contingency table, there are continuous attibutes that we are interested in. The `col_funcs` argument to `contingency_table` calculates summary measures for each outcome and can be used for this purpose.
+It is often the case that in addition to the categorical variables included in the contingency table, there are continuous attributes that we are interested in. The `col_funcs` argument to `contingency_table` calculates summary measures for each outcome and can be used for this purpose.
 
-The example below shows how to calculate mean age across treatment types, using the built-in function `summary_mean`, to which the continuous variable of interest is passed as a string.
+The example below shows how to calculate mean age across treatment types, using the provided function `summary_mean`, to which the name of the continuous variable of interest is passed as a string.
 
 ```{r}
 contingency_table(independents=list("Age"="agebin",
@@ -103,7 +103,7 @@ contingency_table(independents=list("Age"="agebin",
 
 ### Row-wise measures
 
-Another common addition is to display the coefficients of a regression regression model that relates the independent variables with the outcome. For example, we may be interested to see how treatment varies by age by looking at the odds ratios (ORs) of a univariate logistic regression. This behaviour is specified by the `row_funcs` argument to `contingency_table`, which accepts a named list of functions that meet the correct requirements. The two functions provided with this package are `odds_ratio` and `hazard_ratio`, used to display coefficients resulting from logistic regression and Cox regression respectively. 
+Another common addition is to display the coefficients of a regression model that relates the independent variables with an outcome (although not necessarily the same outcome displayed in the contingency table). For example, we may be interested to see how treatment varies by age group by looking at the odds ratios (ORs) of a univariate logistic regression. This functionality is provided by the `row_funcs` argument to `contingency_table`, which accepts a named list of functions that meet the correct requirements. The two functions provided with this package are `odds_ratio` and `hazard_ratio`, used to display coefficients resulting from logistic regression and Cox regression respectively. 
 
 The example below shows how to specify that the odds ratios should be calculated in addition to the cross-tabulated frequencies. The only required argument to `odds_ratio` is the name of the outcome variable. 
 
@@ -117,7 +117,7 @@ contingency_table(list("Age"="agebin",
                  )
 ```
 
-Additional arguments to `odds_ratio` allow the model to adjust for every other covariate included in `independents`, specify the largest group as the baseline, and control the precision and whether to include confidence intervals. Note that multiple functions can be provided to `row_funcs`. While the table below may not fit on the page of this document, it fits neatly within the standard R terminal output.
+Additional arguments to `odds_ratio` allow the model to adjust for every other covariate included in `independents`, specify the largest group as the baseline, and select whether to include confidence intervals. Note that multiple functions can be provided to `row_funcs`. While the table below may not fit on the page of this document, it fits neatly within the standard R terminal output. Strategies for neatly displaying tables are discussed later on.
 
 ```{r}
 contingency_table(list("Age"="agebin",
@@ -131,7 +131,7 @@ contingency_table(list("Age"="agebin",
                  )
 ```
 
-Another use case in epidemiology is where survival is the outcome of interest. Such data is more appropriately modelled using Cox regression, which can be specified with the `hazard_ratio` function. This requires the outcome to be specified as a string detailing a `Surv` object, for example `hazard_ratio("Surv(time, status)")`. The help page provides further details.
+Another use case in epidemiology is when survival is the outcome of interest. Such data is more appropriately modelled using Cox regression, which can be specified with the `hazard_ratio` function. This requires the outcome to be specified as a string detailing a `Surv` object, for example `hazard_ratio("Surv(time, status)")`. See the help page `?hazard_ratio` for further details.
 
 ### Tips
 
@@ -145,7 +145,8 @@ contingency_table(independents=list("Age"="agebin",
                   col_funcs=list("Mean age"=summary_mean("age"),
                                  "Median age"=summary_median("age")),
                   row_funcs=list("OR"=odds_ratio('treated', relevel_baseline=TRUE),
-                                 "Adj OR"=odds_ratio('treated', adjusted=TRUE, relevel_baseline=TRUE)),
+                                 "Adj OR"=odds_ratio('treated', adjusted=TRUE, 
+                                                     relevel_baseline=TRUE)),
                   data=treat)
 ```
 
@@ -159,7 +160,8 @@ contingency_table(independents=list("Age"="agebin",
                   col_funcs=list("Mean age"=summary_mean("age"),
                                  "Median age"=summary_median("age")),
                   row_funcs=list("Treatment OR"=odds_ratio('treated', relevel_baseline=TRUE),
-                                 "Disease variant OR"=odds_ratio('variant', relevel_baseline=TRUE)),
+                                 "Disease variant OR"=odds_ratio('variant', 
+                                                                 relevel_baseline=TRUE)),
                   data=treat)
 ```
 
@@ -169,7 +171,8 @@ contingency_table(independents=list("Age"="agebin",
 contingency_table(independents=list("Age"="agebin",
                                     "Sex"="sex"),
                   row_funcs=list("OR"=odds_ratio('treated', relevel_baseline=TRUE),
-                                 "Adj OR"=odds_ratio('treated', adjusted=TRUE, relevel_baseline=TRUE)),
+                                 "Adj OR"=odds_ratio('treated', adjusted=TRUE, 
+                                                     relevel_baseline=TRUE)),
                   data=treat)
 ```
 
@@ -179,7 +182,7 @@ The default `print` method of these contingency tables is designed for a standar
 
 ### `neat_table` to HTML and PDF
 
-The `neat_table` function provided in `epitab` builds a cleanly formatted table for output to HMTL or LaTeX, using `knitr::kable` and the `kableExtra` package. The output of `neat_table` is still a `kable` object and so can be passed to `kableExtra::kable_styling()`, allowing for the specification of various cosmetic options, such as striped rows and highlighting on mouse hover. See the help files for both `neat_table` and `kableExtra::kable_styling` for further details.
+The `neat_table` function provided in `epitab` builds a cleanly formatted table for output to HMTL or LaTeX, using `knitr::kable` and the `kableExtra` package. The output of `neat_table` is a `kable` object and so can be passed to `kableExtra::kable_styling()`, allowing for the specification of various cosmetic settings. See the help files for both `neat_table` and `kableExtra::kable_styling` for further details.
 
 ```{r}
 contingency_table(independents=list("Age"="agebin",
@@ -197,9 +200,9 @@ contingency_table(independents=list("Age"="agebin",
 
 Due to the vignette markdown theme, these styling changes won't appear in this HTML. The screenshot below shows how the table appears when using the above code in the default Rmarkdown template.
 
-![`neat_table()` HTML example](neat_html.png)
+![](neat_html.png)
 
-For outputting to PDF documents using LaTeX, the same `neat_table` function can be used, but now it must be specified to use the `latex` output format. Also it is **highly** recommended to use the `booktabs` argument to produce far cleaner tables.
+For outputting to PDF documents using LaTeX, the same `neat_table` function can be used, but now the `latex` output format must be specified. Also it is **highly** recommended to use the `booktabs` argument to produce far cleaner looking tables.
 
 ```{r, eval=F}
 contingency_table(independents=list("Age"="agebin",
@@ -216,13 +219,11 @@ contingency_table(independents=list("Age"="agebin",
 
 The above call will display the table below using the default Rmarkdown template.
 
-![`neat_table()` LaTeX example](neat_latex.png)
+![](neat_latex.png)
 
 ### `kable`
 
-If full control of the table appearence is required, then the raw character matrix is provided as the `mat` attribute of the output of `contingency_table`. It can be used in conjunction with the fantastic `knitr::kable` function, and the `kableExtra` package also provides excellent options for tidy tables. **Although again note that these changes will not display in the vignette you are currently reading due to the template, but they will appear in your markdowns**.
-
-NB: The default value for `format` in `kable` is *pandoc*, which does not work well with `epitab`, try *html* or *markdown* instead.
+If full control of the table appearance is required, then the raw character matrix is provided as the `mat` attribute of the output of `contingency_table`. It can be used in conjunction with `knitr::kable` and `kableExtra`. NB: The default value for `format` in `kable` is *pandoc*, which does not work well with `epitab`, try *html* or *markdown* instead.
 
 ```{r}
 contingency_table(list("Age"="agebin",
@@ -236,17 +237,19 @@ contingency_table(list("Age"="agebin",
         kableExtra::kable_styling(bootstrap_options="striped")
 ```
 
+Again note that the stylistic changes made above will not display in the vignette you are currently reading due to the vignette template, but they will appear in your Rmarkdown output as shown below.
+
+![](kable.png)
+
 ### Word
 
-As Word is a proprietary format, it is a bit directly embed tables into documents. The most convenient way involves a few steps:
+Since Word is a proprietary format, it is challenging to directly embed tables into documents. The most convenient method to export a contingency table into Word involves the following steps:
 
-  1. Save the raw table as a CSV
+  1. Save the raw table as a CSV (see code snippet below)
   2. Open the CSV in Excel and copy the table
   3. Right click in a Word document and select *Paste Options -> Use Destination Styles*
   4. Adjust table appearance using standard *Table Tools | Design* options
   
-The code snippet below shows how to save the raw table to CSV.
-
 ```{r, eval=F}
 tab <- contingency_table(independents=list("Age"="agebin",
                                            "Sex"="sex"),
@@ -261,9 +264,9 @@ tab <- contingency_table(independents=list("Age"="agebin",
 write.table(tab$mat, "mytable.csv", row.names=FALSE, col.names=FALSE, sep=',')
 ```
 
-## Custom functions
+## Custom summary functions
 
-In the above examples, the summary functions used to build up the table in `crosstab_funcs`, `row_funcs`, and `col_funcs` have been provided by `epitab`. However, for greater flexibility, any correctly-parameterised function can be used. This section details the appropriate form for each of these 3 arguments.
+In the above examples, the summary functions used to build up the table in `crosstab_funcs`, `row_funcs`, and `col_funcs` have been provided by `epitab`. However, for greater flexibility, any correctly parametrised function can be supplied instead. This section details the appropriate form for each of these 3 arguments.
 
 ### Cross-tabulated
 
@@ -273,11 +276,11 @@ Arguments:
 
   - `outcome_level`: A string providing the current outcome level.
   - `outcome_name`: A string providing the current outcome variable.
-  - `data`: A subset of the full data, to comprise individuals with the current independent variable level.
+  - `data`: A subset of the full data, the strata of individuals with the current independent variable level.
   
-The function must return a vector of length one, representing the statistic for this covariate level / outcome-level pair.
+The function must return a vector of length one, representing the statistic for this covariate-level / outcome-level pair.
 
-The example function below calculates the proportion of each treatment type per covariate level, rather than also displaying the counts as `freq` does.
+The example function below calculates the proportion of each treatment type per covariate level (rather than also displaying the counts as `freq` does).
 
 ```{r}
 proportion <- function(outcome_level, outcome_name, data) {
@@ -301,19 +304,19 @@ The column-wise functions provided with `epitab` are `summary_mean` and `summary
 
 Args:
 
-  - `outlevel`: The current level of the outcome, as a string.
-  - `outcome`: The current outcome, as a string.
+  - `outcome_level`: The current level of the outcome, as a string.
+  - `outcome_name`: The current outcome, as a string.
   - `data`: The full data set that was passed to `contingency_table`.
 
 Returns:
 
 The function must return a single value, representing the statistic for this outcome level.
 
-The example function below extends `summary_mean` by adding the standard deviation in parantheses. It is hardcoded to work for the continuous variable `age` in the dummy data set.
+The example function below extends `summary_mean` by adding the standard deviation in parentheses. It is hard-coded to work for the continuous variable `age` in the dummy data set.
 
 ```{r}
-meanage_sd <- function(outlevel, outcome, data) {
-    sub_data <- data[data[[outcome]] == outlevel, ]
+meanage_sd <- function(outcome_level, outcome_name, data) {
+    sub_data <- data[data[[outcome_name]] == outcome_level, ]
     mean <- round(mean(sub_data[['age']]), 2)
     sd <- round(sd(sub_data[['age']]), 2)
     paste0(mean, " (", sd, ")")
@@ -332,14 +335,12 @@ contingency_table(independents=list("Age"="agebin",
 
 ### Row-wise
 
-Row-wise functions are used to estimate summary measures for the independent variables outside of the contingency table. This can be useful for providing a summary statistic that is not necessarily related to the outcome variables.
-
-This example will describe the case where we wish to run a linear regression on a continuous outcome using the independent variables, in particular, we will be running a linear regression on continuous age. This is not a particularly helpful analysis, particularly since one of the covariates is age group, but it will serve as an example. These functions must be parameterised as follows:
+Row-wise functions are used to estimate summary measures for the independent variables outside of the contingency table. This can be useful for providing a summary statistic that is not necessarily related to the outcome variables. This example will describe the case where we wish to run a linear regression on a continuous outcome, in particular, this example will regress on continuous age. This is not a particularly helpful analysis, since one of the covariates is age group, but it will serve as an example. These functions are run for each independent variable and must be parametrised as follows:
 
 Args:
 
   - `var`: The current independent variable, as a string.
-  - `all_vars`: All independent variables as passed into `independents`.
+  - `all_vars`: All independent variables as passed into `independents`. This is provided to allow regression models to adjust for other covariates.
   - `data`: The data set originally passed into `contingency_table`.
 
 The function must return a vector with length equal to the number of levels of `var`.
