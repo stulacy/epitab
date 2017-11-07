@@ -2,8 +2,8 @@
 % Please edit documentation in R/col_funtions.R
 \name{summary_mean}
 \alias{summary_mean}
-\title{Calculates the mean of a specified continuous variable
-for each level of an outcome.}
+\title{Builds a function to calculate the mean of a
+continuous variable for each level of an outcome.}
 \usage{
 summary_mean(var)
 }
@@ -15,6 +15,6 @@ A function that calculates the mean value of \code{var}
 for each outcome level.
 }
 \description{
-Calculates the mean of a specified continuous variable
-for each level of an outcome.
+Builds a function to calculate the mean of a
+continuous variable for each level of an outcome.
 }

@@ -12,7 +12,7 @@ hazard_ratio(outcome, adjusted = FALSE, relevel_baseline = FALSE,
 as a string. For example, \code{hazard_ratio("Surv(time, status)")}.}
 
 \item{adjusted}{Whether to adjust for the other covariates, specified by
-\code{cat_vars} argument to \code{contingency_table}.}
+\code{independents} argument to \code{contingency_table}.}
 
 \item{relevel_baseline}{Whether to use the largest level as the baseline.}
 
@@ -24,9 +24,9 @@ as a string. For example, \code{hazard_ratio("Surv(time, status)")}.}
 A function that is used to calculate hazard ratios.
 }
 \description{
-Builds a function to build a Cox model on the
-outcome survival object, with a single covariate and
-returns a list of the odds ratios for each level of the factor.
+Builds a function to fit a Cox model to the
+outcome survival object and returns the hazard ratios for
+each covariate level.
 }
 \details{
 See documentation for \code{contingency_table} and vignette

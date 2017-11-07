@@ -2,8 +2,8 @@
 % Please edit documentation in R/col_funtions.R
 \name{summary_median}
 \alias{summary_median}
-\title{Calculates the median of a specified continuous variable
-for each level of an outcome.}
+\title{Builds a function to calculate the median of a
+continuous variable for each level of an outcome.}
 \usage{
 summary_median(var)
 }
@@ -15,6 +15,6 @@ A function that calculates the median value of \code{var}
 for each outcome level.
 }
 \description{
-Calculates the median of a specified continuous variable
-for each level of an outcome.
+Builds a function to calculate the median of a
+continuous variable for each level of an outcome.
 }

@@ -2,12 +2,13 @@
 % Please edit documentation in R/crosstab_functions.R
 \name{freq}
 \alias{freq}
-\title{Calculates cross-tabulated frequencies}
+\title{Builds a function to calculate cross-tabulated frequencies}
 \usage{
 freq(proportion = c("percentage", "ratio", "none"), digits = 2)
 }
 \arguments{
-\item{proportion}{Whether to include the proportion of counts this represents in parantheses.}
+\item{proportion}{If 'perentage' or 'ratio', the proportion of counts
+is included in parantheses.}
 
 \item{digits}{The number of digits to specify \code{proportion} to.}
 }
@@ -15,5 +16,5 @@ freq(proportion = c("percentage", "ratio", "none"), digits = 2)
 A function that calculates the frequency of a cell in a contingency table.
 }
 \description{
-Calculates cross-tabulated frequencies
+Builds a function to calculate cross-tabulated frequencies
 }

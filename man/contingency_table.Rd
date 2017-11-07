@@ -46,46 +46,45 @@ An S3 object of class \code{contintab}, that provides the cell contents
   as a matrix of strings.
 }
 \description{
-A contingency table summarises a data set with multiple categorical variables
-in many ways. There is generally an outcome variable of interest, and the
-independent variables will be cross-tabulated with this outcome. Summary statistics
-are also often provided, along with the results of models fitting a relationship
-between the covariates and the outcome.
-}
-\details{
-This function builds up a contingency table to summarise a data set, which
-can later be exported in a publication friendly format.
+A contingency table provides cross-tabulated frequencies between an outcome
+of interest and one or more independent variables. This function extends
+contingency tables to include summary statistics formed both column-wise
+and row-wise, looking at outcomes and covariates respectively in isolation.
+This allows for a large amount of flexibility and tables can be drawn for
+a variety of situations. By default, the \code{print} method fits these
+tables to standard R console output, but publication quality tables
+can be produced using the \code{neat_table} function. See the vignette
+for further guidance.
 }
 \examples{
 
 # This example uses a dummy data set of whether an individual was treated or not
-treat_df <- data.frame(age=factor(sample(c("0-20", "21-60", ">61"), 100, replace=TRUE),
-                                  levels=c('0-20', '21-60', '>61')),
-                       sex=factor(sample(c("M", "F"), 100, replace=TRUE),
-                                  levels=c('F', 'M')),
-                       treated=factor(sample(c("Yes", "No"), 100, replace=TRUE),
-                                      levels=c('Yes', 'No')))
+treat <- data.frame(age=abs(rnorm(100, 60, 20)),
+                    sex=factor(sample(c("M", "F"), 100, replace=T)),
+                    variant=factor(sample(c("A", "B"), 100, replace=T)),
+                    treated=factor(sample(c("Yes", "No"), 100, replace=T), levels=c("Yes", "No")))
+treat$agebin <- cut(treat$age, breaks=c(0, 40, 60, 80, 9999),labels=c("0-40", "41-60", "61-80", "80+"))
 
- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-                   data=treat_df)
+# Displays a standard contingency table
+contingency_table(list("Age"='agebin', "Sex"='sex'),
+                  outcomes=list('Treated'='treated'),
+                  crosstab_funcs=list(freq()),
+                  data=treat)
 
- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-                   treat_df,
-                   crosstab_funcs=list(freq()),
-                   outcomes=list('Treated'='treated'))
+# Continuous variables can be summarised with respect to the outcome
+# by using col_funcs
+contingency_table(list("Age"='agebin', "Sex"='sex'),
+                  outcomes=list('Treated'='treated'),
+                  crosstab_funcs=list(freq()),
+                  col_funcs=list("Mean age"=summary_mean('age')),
+                  data=treat)
 
- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-                   treat_df,
-                   outcomes=list('Treated'='treated'),
-                   crosstab_funcs=list(freq()),
-                   row_funcs=list("Odds ratio"=odds_ratio('treated')))
-
- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-                   treat_df,
+# Regression coefficients can be added using row_funcs
+contingency_table(list("Age"='agebin', "Sex"='sex'),
+                   treat,
                    outcomes=list('Treated'='treated'),
                    crosstab_funcs=list(freq()),
                    row_funcs=list("Odds ratio"=odds_ratio('treated'),
-                               "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE)))
-
+                                  "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE)))
 
 }

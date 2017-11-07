@@ -2,12 +2,12 @@
 % Please edit documentation in R/neat_table.R
 \name{neat_table}
 \alias{neat_table}
-\title{Displays a neatly formatted table.}
+\title{Displays a neatly formatted contingency table.}
 \usage{
 neat_table(table, format = c("html", "latex"), ...)
 }
 \arguments{
-\item{table}{A \code{contintab} object.}
+\item{table}{A \code{contintab} object, output by \code{contingency_table}.}
 
 \item{format}{A string specifying output format passed to \code{knitr::kable}.
 Currently only 'html' and 'pdf' are supported.}
@@ -18,5 +18,30 @@ Currently only 'html' and 'pdf' are supported.}
 A \code{kable} object.
 }
 \description{
-Displays a neatly formatted table.
+This function provides a default means of converting a contingency table
+into HTML or LaTeX for publishing. By default, multiple column and row
+spanning cells are formed to accentuate the hierarchical nature of the data.
+The output of this function is a \code{kable} object and so can be further
+manipulated.
+}
+\examples{
+
+# This example uses a dummy data set of whether an individual was treated or not
+treat <- data.frame(age=abs(rnorm(100, 60, 20)),
+                    sex=factor(sample(c("M", "F"), 100, replace=T)),
+                    variant=factor(sample(c("A", "B"), 100, replace=T)),
+                    treated=factor(sample(c("Yes", "No"), 100, replace=T), levels=c("Yes", "No")))
+treat$agebin <- cut(treat$age, breaks=c(0, 40, 60, 80, 9999),labels=c("0-40", "41-60", "61-80", "80+"))
+
+tab <- contingency_table(list("Age"='agebin', "Sex"='sex'),
+                         outcomes=list('Treated'='treated'),
+                         crosstab_funcs=list(freq()),
+                         col_funcs=list("Mean age"=summary_mean('age')),
+                         data=treat)
+
+# For use in an Rmarkdown that outputs to HTML
+neat_table(tab, 'html')
+
+# When outputting to PDF, the \\code{booktabs} option produces well-formatted tables
+neat_table(tab, 'latex', booktabs=TRUE)
 }

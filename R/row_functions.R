@@ -1,53 +1,3 @@
-#' Builds a function used to calculate odds ratios.
-#'
-#' Builds a function to calculate logistic regression on the
-#' outcome variable of interest with a varying number of covariates and
-#' returns a list of the odds ratios for each level of the factor.
-#'
-#' See documentation for \code{contingency_table} and vignette
-#' for usage.
-#'
-#' @param outcome The dependent variable as a string.
-#' @param adjusted Whether to adjust for the other covariates, specified by
-#'   \code{cat_vars} argument to \code{contingency_table}.
-#' @param relevel_baseline Whether to use the largest level as the baseline.
-#' @param digits The number of digits to display.
-#' @param ci Whether to include a confidence interval in parantheses after the estimate.
-#'
-#' @return A function that is used to calculate odds ratios.
-#'
-#' @export
-odds_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2, ci=TRUE) {
-
-    build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
-        stats::glm(formula, data, family=stats::binomial())
-    }, digits=digits, ci=ci)
-}
-
-#' Builds a function used to calculate hazard ratios.
-#'
-#' Builds a function to build a Cox model on the
-#' outcome survival object, with a single covariate and
-#' returns a list of the odds ratios for each level of the factor.
-#'
-#' See documentation for \code{contingency_table} and vignette
-#' for usage.
-#'
-#' @inheritParams odds_ratio
-#' @param outcome The dependent variable, specifies a \code{Surv} object
-#'   as a string. For example, \code{hazard_ratio("Surv(time, status)")}.
-#'
-#' @return A function that is used to calculate hazard ratios.
-#'
-#' @export
-hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2, ci=TRUE) {
-
-    build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
-        survival::coxph(formula, data)
-    }, digits=digits, ci=ci)
-}
-
-
 build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_coefs, digits=2, ci=TRUE) {
 
     function(var, all_vars, data) {
@@ -111,3 +61,55 @@ build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_
         output
     }
 }
+
+#' Builds a function used to calculate odds ratios.
+#'
+#' Builds a function to run logistic regression on the
+#' outcome variable of interest and return the odds ratios
+#' for each covariate level.
+#'
+#' See documentation for \code{contingency_table} and vignette
+#' for usage.
+#'
+#' @param outcome The dependent variable as a string.
+#' @param adjusted Whether to adjust for the other covariates, specified by
+#'   \code{independents} argument to \code{contingency_table}.
+#' @param relevel_baseline Whether to use the largest level as the baseline.
+#' @param digits The number of digits to display.
+#' @param ci Whether to include a confidence interval in parantheses after the estimate.
+#'
+#' @return A function that is used to calculate odds ratios.
+#'
+#' @export
+odds_ratio <- function(outcome, adjusted=FALSE,
+                       relevel_baseline=FALSE, digits=2, ci=TRUE) {
+
+    build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
+        stats::glm(formula, data, family=stats::binomial())
+    }, digits=digits, ci=ci)
+}
+
+#' Builds a function used to calculate hazard ratios.
+#'
+#' Builds a function to fit a Cox model to the
+#' outcome survival object and returns the hazard ratios for
+#' each covariate level.
+#'
+#' See documentation for \code{contingency_table} and vignette
+#' for usage.
+#'
+#' @inheritParams odds_ratio
+#' @param outcome The dependent variable, specifies a \code{Surv} object
+#'   as a string. For example, \code{hazard_ratio("Surv(time, status)")}.
+#'
+#' @return A function that is used to calculate hazard ratios.
+#'
+#' @export
+hazard_ratio <- function(outcome, adjusted=FALSE, relevel_baseline=FALSE, digits=2, ci=TRUE) {
+
+    build_regression_model(outcome, adjusted, relevel_baseline, function(formula, data) {
+        survival::coxph(formula, data)
+    }, digits=digits, ci=ci)
+}
+
+

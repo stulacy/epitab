@@ -11,7 +11,7 @@ odds_ratio(outcome, adjusted = FALSE, relevel_baseline = FALSE,
 \item{outcome}{The dependent variable as a string.}
 
 \item{adjusted}{Whether to adjust for the other covariates, specified by
-\code{cat_vars} argument to \code{contingency_table}.}
+\code{independents} argument to \code{contingency_table}.}
 
 \item{relevel_baseline}{Whether to use the largest level as the baseline.}
 
@@ -23,9 +23,9 @@ odds_ratio(outcome, adjusted = FALSE, relevel_baseline = FALSE,
 A function that is used to calculate odds ratios.
 }
 \description{
-Builds a function to calculate logistic regression on the
-outcome variable of interest with a varying number of covariates and
-returns a list of the odds ratios for each level of the factor.
+Builds a function to run logistic regression on the
+outcome variable of interest and return the odds ratios
+for each covariate level.
 }
 \details{
 See documentation for \code{contingency_table} and vignette
