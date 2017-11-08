@@ -3,3 +3,4 @@
 .Rprofile
 ^cran-comments\.md$
 ^TODO$
+^\.travis\.yml$
