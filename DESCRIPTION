@@ -1,13 +1,14 @@
 Package: epitab
 Type: Package
-Title: Contingency tables for Epidemiology
+Title: Flexible contingency tables for Epidemiology
 Version: 0.2.0
 Author: Stuart Lacy
 Maintainer: Stuart Lacy <stuart.lacy@york.ac.uk>
 Description: Builds contingency tables that cross-tabulate multiple 
     categorical varibles and also calculates various summary measures.
-    In future releases the resulting tables can be exported to various
-    formats, including Word, Excel, HTML, and LaTeX.
+    Export to a variety of formats is supporting, including: HTML, 
+    LaTeX, and Excel.
+URL: https://github.com/stulacy/epitab
 License: GPL-2
 Imports: kableExtra,
          knitr,

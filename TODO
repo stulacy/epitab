@@ -1,5 +1,3 @@
-First release:
-  - Third draft of user guide
-
-Further features:
+Next release:
   - Allow a second stratification variable
+  - Add travis support
