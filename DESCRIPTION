@@ -6,8 +6,8 @@ Author: Stuart Lacy
 Maintainer: Stuart Lacy <stuart.lacy@york.ac.uk>
 Description: Builds contingency tables that cross-tabulate multiple 
     categorical variables and also calculates various summary measures.
-    Export to a variety of formats is supported, including: HTML, 
-    LaTeX, and Excel.
+    Export to a variety of formats is supported, including: 'HTML', 
+    'LaTeX', and 'Excel'.
 URL: https://github.com/stulacy/epitab
 License: GPL-2
 Imports: kableExtra,
