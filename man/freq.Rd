@@ -7,8 +7,8 @@
 freq(proportion = c("percentage", "ratio", "none"), digits = 2)
 }
 \arguments{
-\item{proportion}{If 'perentage' or 'ratio', the proportion of counts
-is included in parantheses.}
+\item{proportion}{If 'percentage' or 'ratio', the proportion of counts
+is included in parentheses.}
 
 \item{digits}{The number of digits to specify \code{proportion} to.}
 }

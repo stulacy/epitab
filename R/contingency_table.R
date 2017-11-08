@@ -32,7 +32,7 @@
 #'   to every outcome separate from the independent variables.
 #'   Examples provided with the package included \code{summary_mean} and
 #'   \code{summary_median}, which calculate the mean and median value of a
-#'   specificed continuous variable for each level of the outcome.
+#'   specified continuous variable for each level of the outcome.
 #'   See the vignette for further guidance.
 #' @param marginal Whether to include the counts of each level of \code{cat_vars}, the marginal frequency.
 #'

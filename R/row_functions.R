@@ -76,7 +76,7 @@ build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_
 #'   \code{independents} argument to \code{contingency_table}.
 #' @param relevel_baseline Whether to use the largest level as the baseline.
 #' @param digits The number of digits to display.
-#' @param ci Whether to include a confidence interval in parantheses after the estimate.
+#' @param ci Whether to include a confidence interval in parentheses after the estimate.
 #'
 #' @return A function that is used to calculate odds ratios.
 #'

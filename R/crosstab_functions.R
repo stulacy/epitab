@@ -1,7 +1,7 @@
 #' Builds a function to calculate cross-tabulated frequencies
 #'
-#' @param proportion If 'perentage' or 'ratio', the proportion of counts
-#' is included in parantheses.
+#' @param proportion If 'percentage' or 'ratio', the proportion of counts
+#' is included in parentheses.
 #' @param digits The number of digits to specify \code{proportion} to.
 #' @return A function that calculates the frequency of a cell in a contingency table.
 #'

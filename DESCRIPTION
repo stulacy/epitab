@@ -5,7 +5,7 @@ Version: 0.2.0
 Author: Stuart Lacy
 Maintainer: Stuart Lacy <stuart.lacy@york.ac.uk>
 Description: Builds contingency tables that cross-tabulate multiple 
-    categorical varibles and also calculates various summary measures.
+    categorical variables and also calculates various summary measures.
     Export to a variety of formats is supporting, including: HTML, 
     LaTeX, and Excel.
 URL: https://github.com/stulacy/epitab

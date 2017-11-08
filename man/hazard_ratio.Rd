@@ -18,7 +18,7 @@ as a string. For example, \code{hazard_ratio("Surv(time, status)")}.}
 
 \item{digits}{The number of digits to display.}
 
-\item{ci}{Whether to include a confidence interval in parantheses after the estimate.}
+\item{ci}{Whether to include a confidence interval in parentheses after the estimate.}
 }
 \value{
 A function that is used to calculate hazard ratios.
