@@ -61,7 +61,7 @@ neat_table <- function(table, format=c("html", "latex"), ...) {
     # Group categorical variables together
     indices <- sapply(table$cat_levels, length)
     labels <- names(table$cat_levels)
-    if (!is.null(table$crosstab_funcs)) {
+    if (!is.null(table$crosstab_funcs) | table$frequency) {
         indices <- c(1, indices)
         labels <- c(" ", labels)
     }
