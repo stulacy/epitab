@@ -1,6 +1,6 @@
 ## Comments
 
-This is a resubmission, adding single quotes around names of software in the package DESCRIPTION.
+This is a hotfix to a bug.
 
 
 ## Test environments
@@ -11,6 +11,4 @@ This is a resubmission, adding single quotes around names of software in the pac
   
 ## R CMD CHECK results
 
-No ERRORs or WARNINGs. 
-
-There will be 1 NOTE as this is the initial CRAN submission.
+No ERRORs, WARNINGs, or NOTEs. 

@@ -1,3 +1,7 @@
+## 0.2.1
+
+Hotfix to a display bug in `neat_table` when have more than one `col_func`.
+
 ## 0.2.0
 
 Refactored to allow for user-provided summary measures, for column-wise, row-wise and cross-tabulated
