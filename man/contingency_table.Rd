@@ -36,7 +36,7 @@ See the vignette for further guidance.}
 to every outcome separate from the independent variables.
 Examples provided with the package included \code{summary_mean} and
 \code{summary_median}, which calculate the mean and median value of a
-specificed continuous variable for each level of the outcome.
+specified continuous variable for each level of the outcome.
 See the vignette for further guidance.}
 
 \item{marginal}{Whether to include the counts of each level of \code{cat_vars}, the marginal frequency.}
@@ -60,10 +60,12 @@ for further guidance.
 
 # This example uses a dummy data set of whether an individual was treated or not
 treat <- data.frame(age=abs(rnorm(100, 60, 20)),
-                    sex=factor(sample(c("M", "F"), 100, replace=T)),
-                    variant=factor(sample(c("A", "B"), 100, replace=T)),
-                    treated=factor(sample(c("Yes", "No"), 100, replace=T), levels=c("Yes", "No")))
-treat$agebin <- cut(treat$age, breaks=c(0, 40, 60, 80, 9999),labels=c("0-40", "41-60", "61-80", "80+"))
+                    sex=factor(sample(c("M", "F"), 100, replace=TRUE)),
+                    variant=factor(sample(c("A", "B"), 100, replace=TRUE)),
+                    treated=factor(sample(c("Yes", "No"), 100, replace=TRUE),
+                                   levels=c("Yes", "No")))
+treat$agebin <- cut(treat$age, breaks=c(0, 40, 60, 80, 9999),
+                    labels=c("0-40", "41-60", "61-80", "80+"))
 
 # Displays a standard contingency table
 contingency_table(list("Age"='agebin', "Sex"='sex'),

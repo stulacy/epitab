@@ -1,4 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-R/testdata.R
+.Rprofile
+^cran-comments\.md$
 ^TODO$
+^\.travis\.yml$

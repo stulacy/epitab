@@ -17,10 +17,12 @@
 #'
 #' # This example uses a dummy data set of whether an individual was treated or not
 #' treat <- data.frame(age=abs(rnorm(100, 60, 20)),
-#'                     sex=factor(sample(c("M", "F"), 100, replace=T)),
-#'                     variant=factor(sample(c("A", "B"), 100, replace=T)),
-#'                     treated=factor(sample(c("Yes", "No"), 100, replace=T), levels=c("Yes", "No")))
-#' treat$agebin <- cut(treat$age, breaks=c(0, 40, 60, 80, 9999),labels=c("0-40", "41-60", "61-80", "80+"))
+#'                     sex=factor(sample(c("M", "F"), 100, replace=TRUE)),
+#'                     variant=factor(sample(c("A", "B"), 100, replace=TRUE)),
+#'                     treated=factor(sample(c("Yes", "No"), 100, replace=TRUE),
+#'                                    levels=c("Yes", "No")))
+#' treat$agebin <- cut(treat$age, breaks=c(0, 40, 60, 80, 9999),
+#'                     labels=c("0-40", "41-60", "61-80", "80+"))
 #'
 #' tab <- contingency_table(list("Age"='agebin', "Sex"='sex'),
 #'                          outcomes=list('Treated'='treated'),
@@ -59,7 +61,7 @@ neat_table <- function(table, format=c("html", "latex"), ...) {
     # Group categorical variables together
     indices <- sapply(table$cat_levels, length)
     labels <- names(table$cat_levels)
-    if (!is.null(table$crosstab_funcs)) {
+    if (!is.null(table$crosstab_funcs) | table$frequency) {
         indices <- c(1, indices)
         labels <- c(" ", labels)
     }
