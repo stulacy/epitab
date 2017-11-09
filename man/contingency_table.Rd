@@ -4,69 +4,89 @@
 \alias{contingency_table}
 \title{Builds a contingency table}
 \usage{
-contingency_table(cat_vars, data, outcome = NULL, models = NULL,
-  cox_outcome = NULL, frequency = TRUE, custom_functions = NULL)
+contingency_table(independents, data, outcomes = NULL,
+  crosstab_funcs = NULL, row_funcs = NULL, col_funcs = NULL,
+  marginal = TRUE)
 }
 \arguments{
-\item{cat_vars}{A named list of independent variables, where the names are
-used as the column headers. The variables must be specified by strings.}
+\item{independents}{A named list of independent variables, which will
+be distributed down the table's rows. The variables must be specified
+by strings, with the item name used as the column header.}
 
 \item{data}{The data set that contains the columns specified in
 \code{cat_vars} and \code{outcome}.}
 
-\item{outcome}{The outcome variable of interest, provided as a named list.
-Must be a factor. The outcome must be specified as a string.}
+\item{outcomes}{The variables to cross-tabulate by. These will be
+distributed across the table's columns. Specified as a named list of strings.
+Must correspond to factor or character variables.}
 
-\item{models}{An optional list of functions that apply a model to the
-data, providing a value for each level of the factors specified in
-\code{cat_vars}. See the vignette for a description of how to specify this.
-One function \code{odds_ratio} comes provided with the package.}
+\item{crosstab_funcs}{A list of functions that are applied to every cross-tabulation
+permutation of \code{independents} and \code{outcomes}. The most common
+function, the frequency, is provided with the package in function \code{freq}.
+See the vignette for further guidance.}
 
-\item{cox_outcome}{A survival object representing the survival outcome of the
-Cox model.}
+\item{row_funcs}{A list of functions that are applied row-wise to the table,
+one independent variable at a time, providing a value for each level of
+the factors specified in \code{independents}.
+Two functions: \code{odds_ratio} and \code{hazard_ratio} come
+provided with the package.
+See the vignette for further guidance.}
+
+\item{col_funcs}{A list of functions that are applied column-wise to the table,
+to every outcome separate from the independent variables.
+Examples provided with the package included \code{summary_mean} and
+\code{summary_median}, which calculate the mean and median value of a
+specified continuous variable for each level of the outcome.
+See the vignette for further guidance.}
+
+\item{marginal}{Whether to include the counts of each level of \code{cat_vars}, the marginal frequency.}
 }
 \value{
 An S3 object of class \code{contintab}, that provides the cell contents
   as a matrix of strings.
 }
 \description{
-A contingency table summarises a data set with multiple categorical variables
-in many ways. There is generally an outcome variable of interest, and the
-independent variables will be cross-tabulated with this outcome. Summary statistics
-are also often provided, along with the results of models fitting a relationship
-between the covariates and the outcome.
-}
-\details{
-This function builds up a contingency table to summarise a data set, which
-can later be exported in a publication friendly format.
+A contingency table provides cross-tabulated frequencies between an outcome
+of interest and one or more independent variables. This function extends
+contingency tables to include summary statistics formed both column-wise
+and row-wise, looking at outcomes and covariates respectively in isolation.
+This allows for a large amount of flexibility and tables can be drawn for
+a variety of situations. By default, the \code{print} method fits these
+tables to standard R console output, but publication quality tables
+can be produced using the \code{neat_table} function. See the vignette
+for further guidance.
 }
 \examples{
 
 # This example uses a dummy data set of whether an individual was treated or not
-treat_df <- data.frame(age=factor(sample(c("0-20", "21-60", ">61"), 100, replace=TRUE),
-                                  levels=c('0-20', '21-60', '>61')),
-                       sex=factor(sample(c("M", "F"), 100, replace=TRUE),
-                                  levels=c('F', 'M')),
-                       treated=factor(sample(c("Yes", "No"), 100, replace=TRUE),
-                                      levels=c('Yes', 'No')))
+treat <- data.frame(age=abs(rnorm(100, 60, 20)),
+                    sex=factor(sample(c("M", "F"), 100, replace=TRUE)),
+                    variant=factor(sample(c("A", "B"), 100, replace=TRUE)),
+                    treated=factor(sample(c("Yes", "No"), 100, replace=TRUE),
+                                   levels=c("Yes", "No")))
+treat$agebin <- cut(treat$age, breaks=c(0, 40, 60, 80, 9999),
+                    labels=c("0-40", "41-60", "61-80", "80+"))
 
- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-                   data=treat_df)
+# Displays a standard contingency table
+contingency_table(list("Age"='agebin', "Sex"='sex'),
+                  outcomes=list('Treated'='treated'),
+                  crosstab_funcs=list(freq()),
+                  data=treat)
 
- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-                   treat_df,
-                   outcome=list('Treated'='treated'))
+# Continuous variables can be summarised with respect to the outcome
+# by using col_funcs
+contingency_table(list("Age"='agebin', "Sex"='sex'),
+                  outcomes=list('Treated'='treated'),
+                  crosstab_funcs=list(freq()),
+                  col_funcs=list("Mean age"=summary_mean('age')),
+                  data=treat)
 
- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-                   treat_df,
-                   outcome=list('Treated'='treated'),
-                   models=list("Odds ratio"="odds_ratio"))
-
- contingency_table(list("Age at diagnosis"='age', "Sex"='sex'),
-                   treat_df,
-                   outcome=list('Treated'='treated'),
-                   models=list("Odds ratio"="odds_ratio",
-                               "Adjusted odds ratio"="adj_odds_ratio"))
-
+# Regression coefficients can be added using row_funcs
+contingency_table(list("Age"='agebin', "Sex"='sex'),
+                   treat,
+                   outcomes=list('Treated'='treated'),
+                   crosstab_funcs=list(freq()),
+                   row_funcs=list("Odds ratio"=odds_ratio('treated'),
+                                  "Adjusted odds ratio"=odds_ratio('treated', adjusted=TRUE)))
 
 }
