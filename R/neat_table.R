@@ -50,7 +50,8 @@ neat_table <- function(table, format=c("html", "latex"), ...) {
     if (ncolfuncs > 0) {
         start_index <- 2 + sum(sapply(table$cat_levels, length))
         for (i in seq(ncolfuncs)) {
-            content[start_index, 2] <- content[start_index, 1]
+            ind <- start_index + i - 1
+            content[ind, 2] <- content[ind, 1]
         }
     }
     content <- content[, -1]

@@ -1,3 +1,5 @@
+#' @importFrom stats confint
+#' @importFrom xml2 as_list
 build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_coefs, digits=2, ci=TRUE) {
 
     function(var, all_vars, data) {
@@ -38,7 +40,7 @@ build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_
 
         # Now get CIs
         if (ci) {
-            raw_ci <- suppressMessages(exp(stats::confint(mod)))
+            raw_ci <- suppressMessages(exp(confint(mod)))
             # Firstly get the (p-1) CIs
             ci <- raw_ci[modelled_levels, ]
             # If have a single modelled level then a vector gets returned rather than a matrix
@@ -81,6 +83,7 @@ build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_
 #' @return A function that is used to calculate odds ratios.
 #'
 #' @export
+#' @import MASS
 odds_ratio <- function(outcome, adjusted=FALSE,
                        relevel_baseline=FALSE, digits=2, ci=TRUE) {
 
