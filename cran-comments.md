@@ -1,6 +1,6 @@
 ## Comments
 
-This is a hotfix to a bug.
+This is a hotfix for a bug in one of the functions. It also addresses some of the notes found in R-devel from the previous build.
 
 
 ## Test environments
