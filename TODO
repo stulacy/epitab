@@ -1,3 +1,7 @@
 Next release:
   - Allow a second stratification variable
+  - Handle non-named lists
+  - Allow scalar value to be passed in to arguments when only have one variable of interest, rather than having to make a list
+  - Default alignment of subheadings to be centered
+  - Display row totals
   - Add travis support
