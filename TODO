@@ -5,3 +5,4 @@ Next release:
   - Default alignment of subheadings to be centered
   - Display row totals
   - Add travis support
+  - How to readjust percentages so sum to 1?
