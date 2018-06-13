@@ -16,28 +16,38 @@ freq <- function(proportion=c("column", "row", "none"),
     proportion <- match.arg(proportion)
     display <- match.arg(display)
 
-    function(out_level, out_var, data, in_level=NULL, in_var=NULL) {
+    function(data, outcome_level=NULL, outcome_name=NULL, independent_level=NULL, independent_name=NULL) {
 
-        level_count <- if (is.null(in_level) | is.null(in_var)) {
-            sum(data[[out_var]] == out_level)
+        level_count <- if (is.null(independent_level) || is.null(independent_name)) {
+            sum(data[[outcome_name]] == outcome_level)
+        } else if (is.null(outcome_level) || is.null(outcome_name)) {
+            sum(data[[independent_name]] == independent_level)
         } else {
-            sum(data[[out_var]] == out_level & data[[in_var]] == in_level)
+            sum(data[[outcome_name]] == outcome_level && data[[independent_name]] == independent_level)
         }
 
-        if (proportion == "none" || (!is.null(in_level) && !is.null(missing) && in_level %in% missing)) {
+        if (proportion == "none" || (!is.null(independent_level) && !is.null(missing) && independent_level %in% missing)) {
             outcome <- level_count
         } else {
             denom <- if (proportion == 'row') {
-                if (is.null(in_var) | is.null(in_level)) {
+                if (is.null(independent_name) || is.null(independent_level)) {
                     level_count
                 } else {
-                    sum(data[[in_var]] == in_level)
+                    sum(data[[independent_name]] == independent_level)
                 }
             } else {
-                if (is.null(missing) | is.null(in_var)) {
-                    sum(data[[out_var]] == out_level)
+                if (is.null(missing) || is.null(independent_name)) {
+                    if (is.null(outcome_name) || is.null(outcome_level)) {
+                        nrow(data)
+                    } else {
+                        sum(data[[outcome_name]] == outcome_level)
+                    }
                 } else {
-                    sum(data[[out_var]] == out_level) - sum(data[[out_var]] == out_level & data[[in_var]] %in% missing)
+                    if (is.null(outcome_name) || is.null(outcome_level)) {
+                        nrow(data) - sum(data[[independent_name]] %in% missing)
+                    } else {
+                        sum(data[[outcome_name]] == outcome_level) - sum(data[[outcome_name]] == outcome_level & data[[independent_name]] %in% missing)
+                    }
                 }
             }
             prop <- level_count / denom

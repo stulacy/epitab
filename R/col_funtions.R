@@ -1,7 +1,8 @@
 build_continuous_summary <- function(func, var, digits=2) {
-    function(outlevel, outcome, data) {
-        sub_data <- data[data[[outcome]] == outlevel, ]
-        round(func(sub_data[, var]), digits)
+    function(data, outlevel=NULL, outcome=NULL) {
+        if (!is.null(outlevel) && !is.null(outcome))
+            data <- data[data[[outcome]] == outlevel, ]
+        round(func(data[, var]), digits)
     }
 }
 
