@@ -1,6 +1,7 @@
 ## 0.2.2
 
 Added the ability to provide column-wise proportions, as these are frequently more useful than row-wise. 
+Also column and row wise functions now also operate on marginals
 
 ## 0.2.1
 
