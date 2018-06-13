@@ -4,12 +4,15 @@
 #'   as either row-wise or column-wise, or not at all.
 #' @param display How to display the proportions if required.
 #' @param digits The number of digits to specify \code{proportion} to.
+#' @param missing Specifies covariates that shouldn't be included in calculating proportions
+#'   for column-wise summaries.
 #' @return A function that calculates the frequency of a cell in a contingency table.
 #'
 #' @export
 freq <- function(proportion=c("column", "row", "none"),
                  display=c("percentage", "ratio"),
-                 digits=2) {
+                 digits=3,
+                 missing=NULL) {
     proportion <- match.arg(proportion)
     display <- match.arg(display)
 
@@ -21,7 +24,9 @@ freq <- function(proportion=c("column", "row", "none"),
             sum(data[[out_var]] == out_level & data[[in_var]] == in_level)
         }
 
-        if (proportion != "none") {
+        if (proportion == "none" || (!is.null(in_level) && !is.null(missing) && in_level %in% missing)) {
+            outcome <- level_count
+        } else {
             denom <- if (proportion == 'row') {
                 if (is.null(in_var) | is.null(in_level)) {
                     level_count
@@ -29,7 +34,11 @@ freq <- function(proportion=c("column", "row", "none"),
                     sum(data[[in_var]] == in_level)
                 }
             } else {
-                sum(data[[out_var]] == out_level)
+                if (is.null(missing) | is.null(in_var)) {
+                    sum(data[[out_var]] == out_level)
+                } else {
+                    sum(data[[out_var]] == out_level) - sum(data[[out_var]] == out_level & data[[in_var]] %in% missing)
+                }
             }
             prop <- level_count / denom
             prop <- round(prop, digits)
@@ -39,8 +48,6 @@ freq <- function(proportion=c("column", "row", "none"),
             }
 
             outcome <- paste0(level_count, " (", prop, ")")
-        } else {
-            outcome <- level_count
         }
         outcome
     }
