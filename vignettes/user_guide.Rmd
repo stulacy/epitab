@@ -274,19 +274,29 @@ The functions passed in to `crosstab_functions` are run for each combination of 
 
 Arguments:
 
-  - `outcome_level`: A string providing the current outcome level.
-  - `outcome_name`: A string providing the current outcome variable.
   - `data`: A subset of the full data, the strata of individuals with the current independent variable level.
+  - `outcome_level`: A string providing the current outcome level. 
+  - `outcome_name`: A string providing the current outcome variable. 
+  - `independent_level`: A string providing the current independent level.
+  - `independent_name`: A string providing the current independent variable. 
   
 The function must return a vector of length one, representing the statistic for this covariate-level / outcome-level pair.
 
 The example function below calculates the proportion of each treatment type per covariate level (rather than also displaying the counts as `freq` does).
 
 ```{r}
-proportion <- function(outcome_level, outcome_name, data) {
-    outcome_count <- sum(data[[outcome_name]] == outcome_level)
-    proportion <- outcome_count / nrow(data)
-    round(proportion, 2)
+proportion <- function(data, outcome_level=NULL, outcome_name=NULL, independent_level=NULL, independent_name=NULL) {
+    if (!is.null(outcome_level) && !is.null(outcome_name))
+        data <- data[data[[outcome_name]] == outcome_level, ]
+    
+    count <- if (!is.null(independent_level) && !is.null(independent_name)) {
+        sum(data[[independent_name]] == independent_level)
+    } else {
+        nrow(data)
+    }
+    
+    proportion <- count / nrow(data)
+    sprintf("%0.1f%%", proportion*100)
 }
 ```
 
@@ -304,9 +314,9 @@ The column-wise functions provided with `epitab` are `summary_mean` and `summary
 
 Args:
 
+  - `data`: The full data set that was passed to `contingency_table`.
   - `outcome_level`: The current level of the outcome, as a string.
   - `outcome_name`: The current outcome, as a string.
-  - `data`: The full data set that was passed to `contingency_table`.
 
 Returns:
 
@@ -315,10 +325,11 @@ The function must return a single value, representing the statistic for this out
 The example function below extends `summary_mean` by adding the standard deviation in parentheses. It is hard-coded to work for the continuous variable `age` in the dummy data set.
 
 ```{r}
-meanage_sd <- function(outcome_level, outcome_name, data) {
-    sub_data <- data[data[[outcome_name]] == outcome_level, ]
-    mean <- round(mean(sub_data[['age']]), 2)
-    sd <- round(sd(sub_data[['age']]), 2)
+meanage_sd <- function(data, outcome_level=NULL, outcome_name=NULL) {
+    if (!is.null(outcome_level) && !is.null(outcome_name)) 
+        data <- data[data[[outcome_name]] == outcome_level, ]
+    mean <- round(mean(data[['age']]), 2)
+    sd <- round(sd(data[['age']]), 2)
     paste0(mean, " (", sd, ")")
 }
 ```
@@ -339,14 +350,17 @@ Row-wise functions are used to estimate summary measures for the independent var
 
 Args:
 
+  - `data`: The data set originally passed into `contingency_table`.
   - `var`: The current independent variable, as a string.
   - `all_vars`: All independent variables as passed into `independents`. This is provided to allow regression models to adjust for other covariates.
-  - `data`: The data set originally passed into `contingency_table`.
 
 The function must return a vector with length equal to the number of levels of `var`.
 
 ```{r}
-lr <- function(var, all_vars, data) {
+lr <- function(data, var=NULL, all_vars=NULL) {
+    if (is.null(var) || is.null(all_vars)) {
+        return("")
+    }
     levs <- levels(data[[var]])
     form <- as.formula(paste('age ~', var))
     mod <- lm(form, data)

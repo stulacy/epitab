@@ -1,7 +1,7 @@
 Package: epitab
 Type: Package
 Title: Flexible Contingency Tables for Epidemiology
-Version: 0.2.1
+Version: 0.2.2
 Author: Stuart Lacy
 Maintainer: Stuart Lacy <stuart.lacy@york.ac.uk>
 Description: Builds contingency tables that cross-tabulate multiple 

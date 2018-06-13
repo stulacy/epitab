@@ -90,19 +90,19 @@ contingency_table <- function(independents, data, outcomes=NULL,
     }
 
     raw_content <- lapply(outcomes, function(outcome_val) {
-        # Calculate cross-reference freq overall
+        # Apply cross-tab functions to column totals
         overall_crosstab <- lapply(levels(data[[outcome_val]]), function(lev) {
             sapply(crosstab_funcs, function(func) {
-                func(lev, outcome_val, data)
+                func(data, outcome_level=lev, outcome_name=outcome_val)
             })
         })
 
+        # Apply cross-tab functions to every combination of outcome and independent
         crosstabs <- lapply(independents, function(ind_var) {
             lapply(levels(data[[ind_var]]), function(ind_lev) {
-                sub_data <- data[data[[ind_var]] == ind_lev, ]
                 lapply(levels(data[[outcome_val]]), function(out_lev) {
                     sapply(crosstab_funcs, function(func) {
-                        func(out_lev, outcome_val, sub_data)
+                        func(data, out_lev, outcome_val, ind_lev, ind_var)
                     })
                 })
             })
@@ -110,20 +110,28 @@ contingency_table <- function(independents, data, outcomes=NULL,
         list(overall_crosstab=overall_crosstab, independent_crosstab=crosstabs)
     })
 
-    cat_counts <- lapply(independents, function(var) {
-        table(data[[var]])
+    cat_counts <- lapply(independents, function(ind_var) {
+            lapply(levels(data[[ind_var]]), function(ind_lev) {
+                    sapply(crosstab_funcs, function(func) {
+                        func(data, outcome_level=NULL, outcome_name=NULL,
+                             independent_level=ind_lev, independent_name=ind_var)
+                    })
+            })
     })
 
     row_func_vals <- lapply(independents, function(var) {
-        lapply(row_funcs, function(x) x(var, independents, data))
+        lapply(row_funcs, function(x) x(data, var, independents))
     })
+    # Add on marginal values
+    row_func_vals <- c(row_func_vals, list('Marginal'=lapply(row_funcs, function(x) x(data))))
 
     col_func_vals <- lapply(col_funcs, function(func) {
-        lapply(outcomes, function(out) {
+        c(list('Marginal'=func(data)),
+          lapply(outcomes, function(out) {
             lapply(levels(data[[out]]), function(lev) {
-                func(lev, out, data)
+                func(data, lev, out)
             })
-        })
+        }))
     })
 
     if (!is.null(outcomes)) {
@@ -144,7 +152,7 @@ contingency_table <- function(independents, data, outcomes=NULL,
                     outcomes=outcomes,
                     cat_levels=lapply(independents, function(var) levels(data[[var]])),
                     outcome_levels=outcome_levels,
-                    frequency=marginal,
+                    frequency=!is.null(crosstab_funcs) && marginal,
                     has_outcome=!is.null(outcomes),
                     num_obs=nrow(data),
                     num_headers=1 + as.numeric(!is.null(outcomes)))
@@ -156,16 +164,14 @@ contingency_table <- function(independents, data, outcomes=NULL,
 }
 
 
-#' Converts a table with summary values saved as a list to a matrix.
-#'
-#' @keywords internal
-#'
-#' @param list Input list
-#'
-#' @return A string matrix containing the content of each cell
-#'
-#' Internal helper function
-#'
+# Converts a table with summary values saved as a list to a matrix.
+#
+# list Input list
+#
+# return A string matrix containing the content of each cell
+#
+# Internal helper function
+#
 convert_list_to_matrix <- function(x) {
 
     row_funcs <- x$row_func_labels
@@ -255,7 +261,7 @@ convert_list_to_matrix <- function(x) {
             }
             tab[var_start_row+i-1, 2] <- var_levels[i]  # name of level
             if (x$frequency)
-                tab[var_start_row+i-1, 3] <- x$cat_counts[[var]][i] # overall count
+                tab[var_start_row+i-1, 3] <- x$cat_counts[[var]][[i]] # overall count
         }
         if (x$frequency) {
             starting_crosstab_col <- 4
@@ -277,8 +283,10 @@ convert_list_to_matrix <- function(x) {
 
         # Add row function values
         func_starting_col <- starting_crosstab_col + num_cross_levels
-        for (i in seq_along(x$cat_levels[[var]])) {
-            for (j in seq_along(row_funcs)) {
+
+        for (j in seq_along(row_funcs)) {
+            tab[4, func_starting_col+j-1] <- x$row_func_vals[['Marginal']][[j]]
+            for (i in seq_along(x$cat_levels[[var]])) {
                 tab[var_start_row+i-1, func_starting_col+j-1] <- x$row_func_vals[[var]][[j]][i]
             }
         }
@@ -290,15 +298,15 @@ convert_list_to_matrix <- function(x) {
         curr_row_num <- curr_row_num + 1
         tab[curr_row_num, 1] <- col_funcs[i]
         outcomes <- x$col_func_vals[[i]]
+        start_col_num <- 3
         if (x$frequency) {
-            start_col_num <- 4
-        } else {
-            start_col_num <- 3
+            tab[curr_row_num, start_col_num] <- outcomes[['Marginal']]
+            start_col_num <- start_col_num + 1
         }
 
         col_num <- start_col_num
 
-        for (outcome in outcomes) {
+        for (outcome in outcomes[[setdiff(names(outcomes), 'Marginal')]]) {
             for (val in outcome) {
                 tab[curr_row_num, col_num] <- val
                 col_num <- col_num + 1
