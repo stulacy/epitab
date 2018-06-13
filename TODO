@@ -1,3 +1,8 @@
 Next release:
   - Allow a second stratification variable
+  - Handle non-named lists
+  - Allow scalar value to be passed in to arguments when only have one variable of interest, rather than having to make a list
+  - Default alignment of subheadings to be centered
+  - Have independent counts in line 247 in contingency table be calculated using crosstab_funcs, where outcome is NULL
   - Add travis support
+  - How to readjust percentages so sum to 1?

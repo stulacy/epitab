@@ -4,13 +4,19 @@
 \alias{freq}
 \title{Builds a function to calculate cross-tabulated frequencies}
 \usage{
-freq(proportion = c("percentage", "ratio", "none"), digits = 2)
+freq(proportion = c("column", "row", "none"), display = c("percentage",
+  "ratio"), digits = 3, missing = NULL)
 }
 \arguments{
-\item{proportion}{If 'percentage' or 'ratio', the proportion of counts
-is included in parentheses.}
+\item{proportion}{Whether to display proportions in brackets after the counts
+as either row-wise or column-wise, or not at all.}
+
+\item{display}{How to display the proportions if required.}
 
 \item{digits}{The number of digits to specify \code{proportion} to.}
+
+\item{missing}{Specifies covariates that shouldn't be included in calculating proportions
+for column-wise summaries.}
 }
 \value{
 A function that calculates the frequency of a cell in a contingency table.

@@ -277,13 +277,15 @@ Arguments:
   - `outcome_level`: A string providing the current outcome level.
   - `outcome_name`: A string providing the current outcome variable.
   - `data`: A subset of the full data, the strata of individuals with the current independent variable level.
+  - `independent_level`: A string providing the current independent level. Defaults to `NULL`.
+  - `independent`: A string providing the current independent variable. Defaults to `NULL`.
   
 The function must return a vector of length one, representing the statistic for this covariate-level / outcome-level pair.
 
 The example function below calculates the proportion of each treatment type per covariate level (rather than also displaying the counts as `freq` does).
 
 ```{r}
-proportion <- function(outcome_level, outcome_name, data) {
+proportion <- function(outcome_level, outcome_name, data, independent_level=NULL, independent_name=NULL) {
     outcome_count <- sum(data[[outcome_name]] == outcome_level)
     proportion <- outcome_count / nrow(data)
     round(proportion, 2)
