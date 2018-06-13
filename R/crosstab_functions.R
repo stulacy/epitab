@@ -23,7 +23,7 @@ freq <- function(proportion=c("column", "row", "none"),
         } else if (is.null(outcome_level) || is.null(outcome_name)) {
             sum(data[[independent_name]] == independent_level)
         } else {
-            sum(data[[outcome_name]] == outcome_level && data[[independent_name]] == independent_level)
+            sum(data[[outcome_name]] == outcome_level & data[[independent_name]] == independent_level)
         }
 
         if (proportion == "none" || (!is.null(independent_level) && !is.null(missing) && independent_level %in% missing)) {
