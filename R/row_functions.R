@@ -2,7 +2,11 @@
 #' @importFrom xml2 as_list
 build_regression_model <- function(outcome, adjusted, relevel_baseline, extract_coefs, digits=2, ci=TRUE) {
 
-    function(var, all_vars, data) {
+    function(data, var=NULL, all_vars=NULL) {
+        if (is.null(var) || is.null(all_vars)) {
+            return("")
+        }
+
         # Used when no covariates are specified, thereby indicating
         # a univariate model
         if (adjusted) {
