@@ -306,7 +306,7 @@ convert_list_to_matrix <- function(x) {
 
         col_num <- start_col_num
 
-        for (outcome in outcomes[[setdiff(names(outcomes), 'Marginal')]]) {
+        for (outcome in outcomes[setdiff(names(outcomes), 'Marginal')]) {
             for (val in outcome) {
                 tab[curr_row_num, col_num] <- val
                 col_num <- col_num + 1
